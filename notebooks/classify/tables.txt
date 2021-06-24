@@ -1,0 +1,4 @@
+OfficeActivity
+SigninLogs
+SecurityEvent
+CommonSecurityLog
