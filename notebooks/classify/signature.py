@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import re
 import datetime
+import matplotlib.pyplot as plt
+import ipywidgets as widgets
 from typing import Dict, List
 
 class DataSignature:
@@ -18,14 +20,13 @@ class DataSignature:
         self.cleanedData = None
         self.signatureDict = None
         self.featureMap = None
-        self.unique = None
+        self.uniqueFeatures = None
         self.featureValueCounts = None
 
-    def cleanData(self, table, exactMatches=[], regexes=[], removeDuplicates=True, isInvariant=True):
+    def cleanData(self, exactMatches=[], regexes=[], removeDuplicates=True, isInvariant=True):
         """[Function for cleaning extraneous features from a pandas dataframe]
 
         Args:
-            table ([type]): [Pandas dataframe to clean]
             exactMatches (list, optional): [List of features to remove if an exact match occurs]. Defaults to [].
             regexes (list, optional): [List of regexes to remove if the regular expression matches any features]. Defaults to [].
             removeDuplicates (bool, optional): [Boolean that determines if duplicates should be removed]. Defaults to True.
@@ -34,8 +35,7 @@ class DataSignature:
         Returns:
             [pd.Dataframe]: [Pandas dataframe that has been cleaned]
         """
-        # print('Cleaning Table.')
-        cleanTable = table.applymap(lambda x: str(x) if isinstance(x, list) or isinstance(x, dict) or isinstance(x, datetime.datetime) else x)
+        cleanTable = self.table.applymap(lambda x: str(x) if isinstance(x, list) or isinstance(x, dict) or isinstance(x, datetime.datetime) else x)
         
         # Remove features that may be continuous values (i.e. time) using regular expressions and exact matches
         
@@ -80,6 +80,7 @@ class DataSignature:
             
             # Add empty columns back into table and reorder
             cleanTable = pd.concat([cleanTable, col], axis=1)
+
         return cleanTable
 
     def binarizeData(self, table: pd.DataFrame, removeNaN: bool = True):
@@ -210,12 +211,13 @@ class DataSignature:
             removeNaN (bool, optional): [Determines if NaN values should be converted to an empty string]. Defaults to True.
         """
 
-        self.cleanedData = self.cleanData(self.table, exactMatches=exactMatches, regexes=regexes, removeDuplicates=removeDuplicates, isInvariant=isInvariant)
-        self.binData = self.binarizeData(self.table, removeNaN=removeNaN)
+        self.cleanedData = self.cleanData(exactMatches=exactMatches, regexes=regexes, removeDuplicates=removeDuplicates, isInvariant=isInvariant)
+        self.features = list(self.cleanedData)
+        self.binData = self.binarizeData(self.cleanedData, removeNaN=removeNaN)
         self.signatureDict = self.generate(self.binData, self.cleanedData)
         featureMap = {}
         for key, value in self.signatureDict.items():
-            featureMap[tuple(value['presentFeatures'])] = key
+            featureMap[tuple(sorted(list(value['presentFeatures'])))] = key
         self.featureMap = featureMap
 
     def findUniques(self, threshold: int = 1):
@@ -243,7 +245,7 @@ class DataSignature:
                     else:
                         featureValueCounts[key] = 1
             uniques[signature] = uniqueFeatures
-        self.uniques = uniques
+        self.uniqueFeatures = uniques
         self.featureValueCounts = featureValueCounts
 
     # Function that displays the unique value for a given signature
@@ -260,3 +262,33 @@ class DataSignature:
     #             print(key, 'is unique through the entire table')
     #         else:
     #             print(key)
+
+    def displaySignatures(self):
+        # The multiselect element allows the user to choose which features should be present
+        # i.e. if we want to look at the data which only have tenantid and clientip we would select those
+        multiSelect = widgets.SelectMultiple(
+            options=sorted(list(self.cleanedData)),
+            description='Present Features',
+            disabled=False
+        )
+        display(multiSelect)
+
+        # Check if the selected values are a valid combination
+        if tuple(sorted(multiSelect.value)) not in self.featureMap:
+            print("Data signature with those values were not found.")
+        else:
+            dataSignature = self.featureMap[sorted(multiSelect.value)]
+            
+            porportion = self.signatureDict[dataSignature]['count'] / self.cleanedData.shape[0]
+            print(f'% of samples that have this signature: {porportion}%')
+            features = self.signatureDict[dataSignature]['featureDict']
+
+            # The dropdown element allows the user to select which feature to visualize
+            # i.e. if we have a signature, and we want to see the distribution of different clientIP's within that signature
+            # the dropdown allows us to select which value to visualize
+            dropdown = widgets.Dropdown(
+                options=sorted(list(features.keys())),
+                description='Value:',
+            )
+            display(dropdown)
+            plt.bar(features[dropdown.value].keys(), features[dropdown.value].values(), 1, color='g')
