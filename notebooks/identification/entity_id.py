@@ -2,6 +2,7 @@ import numpy as np
 import json
 import re
 import pprint
+import ipywidgets as widgets
 
 """ Entity Identification Module """
 
@@ -161,7 +162,7 @@ class EntityIdentifier:
         # object attribute to interpreted results
         self.table_entities: dict[table_name, dict[col_name, entity]]
         # reverse mapping from entities to table/column
-        self.entity_map
+        # self.entity_map: dict[entity, tables_cols_arr]
         self.qry_prov = qry_prov
 
 
@@ -386,10 +387,10 @@ class EntityIdentifier:
             json_dict (dict): Any nested dictionary.
         """
         for table, cols in json_dict.items():
-        print(table)
-    
-        print("-" * len(table))
-        pprint.pprint(cols)
+            print(table)
+        
+            print("-" * len(table))
+            pprint.pprint(cols)
 
 
     def generate_query(self, entity_type, search_value, query_template):
