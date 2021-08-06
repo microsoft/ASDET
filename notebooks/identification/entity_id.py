@@ -1,21 +1,17 @@
-""" Entity Identification Module """
+"""Entity Identification Module"""
+
+
 import numpy as np
 import json
 import re
 import pprint
-
-# IH - added some additional imports
 from pathlib import Path
 from typing import Dict, List, Tuple
-
 from IPython.display import HTML
-import ipywidgets as widgets
-
+from tqdm.auto import tqdm
 from msticpy.nbtools import nbwidgets
 
 
-# IH Would be better to keep this as a backup and rely mainly on data read in
-# from regexes.json - easier to maintain than editing code to add new items
 DEF_REGEXES = {
     "DNS_REGEX": {
         "regex": r"^((?=[a-z0-9-]{1,63}\.)[a-z0-9]+(-[a-z0-9]+)*\.){1,126}[a-z]{2,63}$",
@@ -86,7 +82,7 @@ DEF_REGEXES = {
             (?P<folder>\\(?:[^\\/:*?"'<>|\r\n]+\\)*)?
             (?P<file>[^\\/*?""<>|\r\n ]+\.exe)$
         """,
-        "priority": "1",
+        "priority": "0",
         "entity": "process",
     },
     "EMAIL_REGEX": {
@@ -117,57 +113,68 @@ DEF_REGEXES = {
     },
 }
 
-# IH - we use numpy docstring standard
-# If you use type hints and the vscode Python Docstring Generator,
-# it will make nicely formatted templates for you
-# Type a blank line under the function name and hit Ctrl-Shift-2
-# Example after the func
-def save_regex_defs(data=DEF_REGEXES, path="./", file_name="regexes"):
-    """
-    Save all entity regexes to a JSON file.
 
-    Args:
-        data (dict, optional): Contents of the file to be created. Defaults to regexes.
-        path (str, optional): File path of the file to be created. Defaults to "./".
-        file_name (str, optional): Name of the file to be created. Defaults to "regexes".
+QUERY_TEMP = """
+{table}
+| where {ColumnName} == "{{MySearch}}"
+"""
+
+
+def save_to_json_file(
+    data: Dict,
+    path: str
+):
     """
-    filePathNameWExt = "./" + path + "/" + file_name + ".json"
-    with open(filePathNameWExt, "w") as fp:
+    Save data to a JSON file at the specified path.
+
+    Parameters
+    ----------
+    data : Dict
+        Contents of the file to be created
+    path : str, optional
+        File path of the file to be created
+    """
+    with open(path, "w") as fp:
         json.dump(data, fp)
 
+def read_json_file(path: str):
+    """
+    Read and return JSON file contents.
 
-# def save_regex_defs(
-#     data: Dict[str, Dict[str, str]] = DEF_REGEXES,
-#     path: str = "./",
-#     file_name: str = "regexes"
-# ):
-#     """
-#     Save all entity regexes to a JSON file.
+    Parameters
+    ----------
+    path : str, optional
+        File path.
 
-#     Parameters
-#     ----------
-#     data : Dict[str, Dict[str, str]], optional
-#         Contents of the file to be created, by default DEF_REGEXES
-#     path : str, optional
-#         File path of the file to be created, by default "./"
-#     file_name : str, optional
-#         Name of the file to be created, by default "regexes"
-#     """
-#     filePathNameWExt = "./" + path + "/" + file_name + ".json"
-#     with open(filePathNameWExt, "w") as fp:
-#         json.dump(data, fp)
+    Returns
+    -------
+    Dict
+        JSON file.
+    """
+    if not Path(path).is_file():
+        if "regexes" in path:
+            return DEF_REGEXES
+        else:
+            return
+    with open(path) as f:
+        return json.load(f)
 
 
-def add_regex_def(name, regex, priority, entity):
+def add_regex_def(name: str, regex: str, priority: str, entity: str):
     """
     Add additional regexes to the JSON file.
 
-    Args:
-        name (str): Regex name.
-        regex (str): Regex definition.
-        priority (str): Regex priority.
-        entity (str): Entity corresponding to the regex.
-    """
+    Parameters
+    ----------
+    name : str
+        Regex name.
+    regex : str
+        Regex definition.
+    priority : str
+        Regex priority.
+    entity : str
+        Entity corresponding to the regex.
+    """    
     with open("regexes.json") as json_file:
         data = json.load(json_file)
         y = {name: {"regex": regex, "priority": priority, "entity": entity}}
@@ -176,62 +183,93 @@ def add_regex_def(name, regex, priority, entity):
         json.dump(data, f)
 
 
-def read_regex_defs(path: str = "./regexes.json"):
-    """
-    Read and return regex dict.
-
-    Returns:
-        dict: Regex dict stored in regexes.json.
-    """
-    if not Path(path).is_file():
-        return DEF_REGEXES
-    with open(path) as f:
-        return json.load(f)
-
-
-# IH classes need a docstring
 class EntityIdentifier:
+    """Class for identifying entities in the tables of an Azure Sentinel workspace."""    
 
-    # So does __init__
     def __init__(self, qry_prov):
+        """
+        Instantiate the EntityIdentifier class.
 
-        # IH - change the definitions to legal typing structure.
-        # Dict structure is {table: {column: {regex: (non-blank-matches, all-matches)}}}
+        Parameters
+        ----------
+        qry_prov : msticpy.data.data_providers.QueryProvider
+            An authenticated query provider that has been connected to an Azure Sentinel workspace.
+        """        
+
         # raw results
+        # Dict structure is {table: {column: {regex: (non-blank-matches, all-matches)}}}
         self._regex_matches: Dict[str, Dict[str, Dict[str, Tuple(float, float)]]]
         # object attribute to interpreted results
         self.table_entities: Dict[str, Dict[str, str]]
         # reverse mapping from entities to table/column
         self.entity_map: Dict[str, List[Tuple(str, str)]]
         self.qry_prov = qry_prov
-
-        # IH - I've added this
         # load the regexes
-        self.regexes = read_regex_defs("regexes.json")
+        self.regexes = read_json_file("regexes.json")
+        # selected tables
+        self.selected_tables = nbwidgets.SelectSubset(source_items=list(self.qry_prov.schema.keys()), hidden=True)
 
-    # IH - would be good to have a couple of functions that 1) save the results
-    # from the self._regex_matches, self.table_entities, self.entity_map
-    # and 2) read them back in. You can prob just add them all to a dict (with
-    # keys for each section and store/read them as json)
+    def save_results(self, path: str = "./results.json"):
+        """
+        Save _regex_matches, table_entities, and entity_map to a JSON file.
+
+        Parameters
+        ----------
+        path : str, optional
+            File path of the file to be created, by default "./results.json"
+        """
+        if not self._regex_matches:
+            return
+        results = {
+            "regex_matches": self._regex_matches,
+            "table_entities": self.table_entities,
+            "entity_map": self.entity_map
+        }
+        save_to_json_file(results, path)
+
+    def read_results(self, path: str = "./results.json"):
+        """
+        Read results dict and store the values in designated class variables.
+
+        Parameters
+        ----------
+        path : str, optional
+            File path, by default "./results.json"
+        """    
+        results = read_json_file(path)
+        if results:
+            self._regex_matches = results["regex_matches"]
+            self.table_entities = results["table_entities"]
+            self.entity_map = results["entity_map"]
+
 
     def search_single_table(self, table, partial=False, debug=False):
         """
         Apply every regex to every column in the given table.
 
-        Args:
-            table (DataFrame): A table/log queried from the connected Azure Sentinel workspace.
-            partial (bool, optional): If True, searches for substring matches. If False, searches for a match for the entire string. Defaults to False.
-            debug (bool, optional): If True, prints the columns for which no match was found. Defaults to False.
+        Parameters
+        ----------
+        table : DataFrame
+            A table/log queried from the connected Azure Sentinel workspace.
+        partial : bool, optional
+            If True, searches for substring matches. If False, searches for a match for the entire string, by default False
+        debug : bool, optional
+            If True, prints the columns for which no match was found, by default False
 
-        Returns:
-            dict: {Column: {Regex: (Match ratio excluding blanks, Match ratio including blanks)}}
-        """
+        Returns
+        -------
+        Dict[str, Dict[str, Dict[str, Tuple(float, float)]]]
+            {table: {column: {regex: (non-blank-matches, all-matches)}}}
+        """        
+        
         # Dictionary to store results
         full_matches = {}
         # Iterate over each column
         for col in table.columns:
+            if len(table[col]) < 1:
+                continue
             # Skip non-string columns
-            if table[col].dtype != np.dtype("O"):
+            if not isinstance(table[col][0], str):
                 if debug:
                     print(f" -- col {col} is type {table[col].dtype}. Skipping")
                 continue
@@ -268,14 +306,10 @@ class EntityIdentifier:
             if col not in full_matches and debug:
                 print(f" -- col {col} no match found")
         return full_matches
+        
 
     def table_match_to_html(self, table_name, show_guids=False):
         """Return table column matches as HTML table."""
-
-        # IH - rather than call this for each table, would be better to
-        # rely on the user to run the search tables functionality for some/all of the tables
-        # then just have this display the results.
-        self._regex_matches = self.search_single_table(table_name)
 
         if table_name not in self._regex_matches:
             return HTML("No data")
@@ -316,8 +350,8 @@ class EntityIdentifier:
         # build and return the table html
         return HTML(f"{header} {''.join(table_html)}</tbody></table>")
 
-    # IH better name might be display_entity_matches or display_regex_matches
-    def get_regex_matches(self):
+
+    def display_regex_matches(self):
         """
         Displays a widget to allow user to select a table to be matched for regexes.
         """
@@ -331,11 +365,17 @@ class EntityIdentifier:
         """
         For each column apply priority and match percentage logic to assign an entity to the column.
 
-        Args:
-            table_match_dic (Dict): Output of match_entities function. Dict showing all columns that matched one or more regexes.
-        Returns:
-            Dictionary: {Table: {Column: Entity}}
-        """
+        Parameters
+        ----------
+        regex_matches : Dict
+            Output of match_entities function. Dict showing all columns that matched one or more regexes. 
+            Dict structure is {table: {column: {regex: (non-blank-matches, all-matches)}}}
+
+        Returns
+        -------
+        Dict
+            Dict structure is {table: {column: entity}}.
+        """        
         entity_assignments = {}
         for table, cols in regex_matches.items():
             entity_assignments[table] = {}
@@ -372,12 +412,17 @@ class EntityIdentifier:
         """
         Iterates through the interpreted results to create a dict keyed by entity type.
 
-        Args:
-            table (Dict): Output of interpret_matches function. Dict of column-entity mappings keyed by table and column.
+        Parameters
+        ----------
+        table_entities : Dict
+            Output of interpret_matches function. Dict of column-entity mappings keyed by table and column.
+            Dict structure is {table: {column: entity}}.
 
-        Returns:
-            Dict: {entity: [(table, col)]}
-        """
+        Returns
+        -------
+        Dict
+            Dict structure is Dict: {entity: [(table, col)]}.
+        """        
         entity_dict = {}
         for table, cols in table_entities.items():
             for col, entity in cols.items():
@@ -387,90 +432,64 @@ class EntityIdentifier:
                 entity_dict[entity].append((table, col))
         return entity_dict
 
-    def detect_entities_random(self, num_tables=3, sample_size=100):
-        """
-        Runs the match_regexes, interpret_matches, and create_entity_index functions on three random non-empty tables in the schema by default.
 
-        Args:
-            num_tables (int, optional): Number of random tables to sample. Defaults to 3.
-            sample_size (int, optional): Number of events/rows in each table to sample. Defaults to '100'.
-
-        Returns:
-            Dict: Output of create_entity_map function. Returns reverse mapping from entities to table and column.
+    def detect_entities(self, tables, sample_size="100"):
         """
+        Runs the match_regexes, interpret_matches, and create_entity_map functions on given tables.
+        Persists returned values in instance result attributes.
+
+        Parameters
+        ----------
+        tables : List[str]
+            Array of tables in string format to iterate over
+        sample_size : str, optional
+            Number of events/rows in each table to sample, by default "100"
+
+        Returns
+        -------
+        Dict
+            Output of create_entity_map function. Returns reverse mapping from entities to table and column.
+        """        
         output_regexes = {}
-
-        for i in range(num_tables):
-            table, cols = self.qry_prov.schema.popitem()
-            df = self.qry_prov.exec_query(f"{table} | sample {sample_size}")
-            while len(df) == 0:
-                table, cols = self.qry_prov.schema.popitem()
-                df = self.qry_prov.exec_query(f"{table} | sample {sample_size}")
-            output_regexes[table] = self.search_single_table(df)
-        output_entities = self.interpret_matches(output_regexes)
-        keyed_entities = self.create_entity_map(output_entities)
-        return keyed_entities
-
-    # IH - I think this should persist the results to the instance results attributes
-    # The ones created in __init__
-    # You might also want to abstract the "query_single_table and do search/interpret/create_map"
-    # functionality. Then each of these variants (including "all tables") can just call this
-    # function.
-    # One of the rules I put in the one note is if you have copy/paste code patterns, it
-    # prob means you need to abstract to a function. :-)
-    def detect_entities_in_passed_tables(self, tables, sample_size="100"):
-        """
-        Runs the match_regexes, interpret_matches, and create_entity_map functions on selected tables in the schema.
-
-        Args:
-            tables ([str]): Array of tables in string format that we want iterate over
-            sample_size (str, optional): Number of events/rows in each table to sample. Defaults to '100'.
-
-        Returns:
-            Dict: Output of create_entity_map function. Returns reverse mapping from entities to table and column.
-        """
-        output_regexes = {}
-
-        for i in range(len(tables)):
-            table = tables[i]
+        for table in tqdm(tables):
             df = self.qry_prov.exec_query(f"{table} | sample {sample_size}")
             output_regexes[table] = self.match_regexes(df)
-        output_entities = self.interpret_matches(output_regexes)
-        keyed_entities = self.create_entity_map(output_entities)
-        return keyed_entities
+        self._regex_matches = output_regexes
+        self.table_entities = self.interpret_matches(self._regex_matches)
+        self.entity_map = self.create_entity_map(self.table_entities)
+        return self.entity_map
 
-    # IH - I don't think this will work - since the second line will run before you've
-    # selected anything. You'll probably need to make "sel_sub" an instance attribute
-    # (in __init__), maybe call it selected_tables, but not display it.
-    # Then you can display it (my_rgx_obj.selected_tables), have the user choose the
-    # tables, and then run detect_entities_in_tables
-    # maybe rename this
-    def detect_entities(self):
+
+    def detect_entities_random(self, num_tables=3, sample_size=100):
         """
-        Displays a widget to allow user to select tables to detect entities in.
+        Runs detect_entities function on any number of random tables.
+        """        
+        # Generate random list of tables
+        tables = []
+        for i in range(num_tables):
+            table, cols = self.qry_prov.schema.popitem()
+            tables.append(table)
+        return self.detect_entities(tables)
 
-        Returns:
-            Dict: Reverse mapping from entities to table and column.
+
+    def detect_entities_widget(self):
         """
-        sel_sub = nbwidgets.SelectSubset(source_items=list(self.qry_prov.schema.keys()))
-        return self.detect_entities_in_passed_tables(sel_sub.selected_items)
+        Run detect_entities function on tables selected in a widget.
+        """
+        return self.detect_entities(self.selected_tables.selected_items)
 
-    # IH - think it would be good to have a function that runs against all tables
-    def detect_entities_all_table(self):
 
-        # iterate through tables
-        ...
-        # save results to self._regex_matches, etc.
+    def detect_entities_all_tables(self):
+        """
+        Run detect_entities function on all tables.
+        """
+        # List of all tables
+        self.detect_entities(self.qry_prov.schema.keys())
 
-    # IH - prints which dict? It might be nicer to make this an internal method
-    # and make it static. Then create some funcs to that use it to
-    # display the actual dicts in the class
+
     def print_dict(self, json_dict):
         """
-        Prints dict in a more readable format.
-
-        Args:
-            json_dict (dict): Any nested dictionary.
+        Prints any dict in a more readable format. Could be any of the instance results attributes.
         """
         for table, cols in json_dict.items():
             print(table)
@@ -478,24 +497,8 @@ class EntityIdentifier:
             print("-" * len(table))
             pprint.pprint(cols)
 
-    # IH example
-    # @staticmethod
-    # def _print_dict(self, json_dict):
-    #     ...
 
-    # def disp_regexes(self):
-    #     self._print_dict(self._regex_matches)
-
-    # def disp_table_entities(self):
-    #     self._print_dict(self.table_entities)
-
-    # def disp_entity_table_map(self):
-    #     self._print_dict(self.entity_map)
-
-    # IH - would be good to define query template as a const (str)
-    # and use that by default
-    # We can use this in the table display widget stuff.
-    def generate_query(self, entity_type, search_value, query_template):
+    def generate_query(self, entity_type: str, search_value: str, query_template=QUERY_TEMP):
         """
         Generate KQL queries that match the provided template.
 
@@ -507,19 +510,17 @@ class EntityIdentifier:
         Returns:
             List: List of generated queries.
         """
-        # IH email_queries?
-        email_queries = []
+        queries = []
         for table, matches in self.table_entities.items():
             for col, entity in matches.items():
                 if entity_type == entity:
                     # print("found match", table, col, entity)
                     query = query_template.format(table=table, ColumnName=col)
-                    email_queries.append(query.format(MySearch=search_value))
-        return email_queries
+                    queries.append(query.format(MySearch=search_value))
+        return queries
 
 
-# IH - isn't this "run_queries"?
-def display_queries(self, queries):
+def run_queries(self, queries):
     """
     Runs the queries.
 
@@ -527,7 +528,7 @@ def display_queries(self, queries):
         queries (List)): Output of generate_query function.
     """
     for query in queries:
-        query_result = qry_prov.exec_query(query)
+        query_result = self.qry_prov.exec_query(query)
         if len(query_result) > 0:
             print(query)
             print("-" * len(query))
