@@ -8,6 +8,7 @@ import pprint
 from pathlib import Path
 from typing import Dict, List, Tuple
 from IPython.display import HTML
+from IPython.display import display
 from tqdm.auto import tqdm
 from msticpy.nbtools import nbwidgets
 
@@ -207,7 +208,7 @@ class EntityIdentifier:
         # load the regexes
         self.regexes = read_json_file("regexes.json")
         # selected tables
-        self.selected_tables = nbwidgets.SelectSubset(source_items=list(self.qry_prov.schema.keys()), hidden=True)
+        self.selected_tables = nbwidgets.SelectSubset(source_items=list(self.qry_prov.schema.keys()), auto_display=False)
 
     def save_results(self, path: str = "./results.json"):
         """
@@ -427,15 +428,15 @@ class EntityIdentifier:
         for table, cols in table_entities.items():
             for col, entity in cols.items():
                 entity_dict[entity] = []
-        for table, cols in table.items():
+        for table, cols in table_entities.items():
             for col, entity in cols.items():
                 entity_dict[entity].append((table, col))
         return entity_dict
 
 
-    def detect_entities(self, tables, sample_size="100"):
+    def detect_entities(self, tables=None, sample_size="100"):
         """
-        Runs the match_regexes, interpret_matches, and create_entity_map functions on given tables.
+        Runs the search_single_table, interpret_matches, and create_entity_map functions on given tables.
         Persists returned values in instance result attributes.
 
         Parameters
@@ -450,10 +451,12 @@ class EntityIdentifier:
         Dict
             Output of create_entity_map function. Returns reverse mapping from entities to table and column.
         """        
+        if tables is None:
+            tables = self.selected_tables.selected_items
         output_regexes = {}
         for table in tqdm(tables):
             df = self.qry_prov.exec_query(f"{table} | sample {sample_size}")
-            output_regexes[table] = self.match_regexes(df)
+            output_regexes[table] = self.search_single_table(df)
         self._regex_matches = output_regexes
         self.table_entities = self.interpret_matches(self._regex_matches)
         self.entity_map = self.create_entity_map(self.table_entities)
@@ -472,11 +475,8 @@ class EntityIdentifier:
         return self.detect_entities(tables)
 
 
-    def detect_entities_widget(self):
-        """
-        Run detect_entities function on tables selected in a widget.
-        """
-        return self.detect_entities(self.selected_tables.selected_items)
+    def select_tables(self):
+        display(self.selected_tables)
 
 
     def detect_entities_all_tables(self):
@@ -487,15 +487,26 @@ class EntityIdentifier:
         self.detect_entities(self.qry_prov.schema.keys())
 
 
-    def print_dict(self, json_dict):
+    @staticmethod
+    def _print_dict(json_dict):
         """
-        Prints any dict in a more readable format. Could be any of the instance results attributes.
+        Prints any dict in a more readable format.
         """
         for table, cols in json_dict.items():
             print(table)
 
             print("-" * len(table))
             pprint.pprint(cols)
+
+
+    def disp_regex_matches(self):
+        self._print_dict(self._regex_matches)
+
+    def disp_table_entities(self):
+        self._print_dict(self.table_entities)
+
+    def disp_entity_map(self):
+        self._print_dict(self.entity_map)
 
 
     def generate_query(self, entity_type: str, search_value: str, query_template=QUERY_TEMP):

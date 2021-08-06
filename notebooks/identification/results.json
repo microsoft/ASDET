@@ -1,0 +1,758 @@
+{
+    "regex_matches": {
+        "CommonSecurityLog": {
+            "TenantId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "DestinationIP": {
+                "IPV4_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "SourceIP": {
+                "IPV4_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "DestinationTranslatedAddress": {
+                "IPV4_REGEX": [
+                    1.0,
+                    0.09
+                ]
+            },
+            "DestinationHostName": {
+                "DNS_REGEX": [
+                    1.0,
+                    0.27
+                ]
+            },
+            "SourceTranslatedAddress": {
+                "IPV4_REGEX": [
+                    1.0,
+                    0.44
+                ]
+            },
+            "SourceUserName": {
+                "EMAIL_REGEX": [
+                    0.6296296296296297,
+                    0.17
+                ]
+            },
+            "DeviceCustomString5": {
+                "DNS_REGEX": [
+                    0.07407407407407407,
+                    0.02
+                ]
+            },
+            "_ResourceId": {
+                "LXPATH_REGEX": [
+                    1.0,
+                    1.0
+                ],
+                "RESOURCEID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        "OfficeActivity": {
+            "TenantId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "OrganizationId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "OrganizationId_": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "UserKey": {
+                "GUID_REGEX": [
+                    0.01,
+                    0.01
+                ]
+            },
+            "OfficeObjectId": {
+                "URL_REGEX": [
+                    0.03636363636363636,
+                    0.02
+                ],
+                "GUID_REGEX": [
+                    0.16363636363636364,
+                    0.09
+                ]
+            },
+            "UserId": {
+                "EMAIL_REGEX": [
+                    0.68,
+                    0.68
+                ]
+            },
+            "UserId_": {
+                "EMAIL_REGEX": [
+                    0.68,
+                    0.68
+                ]
+            },
+            "ClientIP": {
+                "IPV4_REGEX": [
+                    0.9333333333333333,
+                    0.28
+                ],
+                "IPV6_REGEX": [
+                    0.06666666666666667,
+                    0.02
+                ]
+            },
+            "ClientIP_": {
+                "IPV4_REGEX": [
+                    0.9333333333333333,
+                    0.28
+                ],
+                "IPV6_REGEX": [
+                    0.06666666666666667,
+                    0.02
+                ]
+            },
+            "Site_": {
+                "GUID_REGEX": [
+                    1.0,
+                    0.27
+                ]
+            },
+            "Site_Url": {
+                "URL_REGEX": [
+                    1.0,
+                    0.23
+                ]
+            },
+            "Site_Url_": {
+                "URL_REGEX": [
+                    1.0,
+                    0.23
+                ]
+            },
+            "SourceFileName": {
+                "DNS_REGEX": [
+                    0.13043478260869565,
+                    0.03
+                ]
+            },
+            "SourceFileName_": {
+                "DNS_REGEX": [
+                    0.13043478260869565,
+                    0.03
+                ]
+            },
+            "OrganizationName": {
+                "DNS_REGEX": [
+                    1.0,
+                    0.63
+                ]
+            },
+            "MailboxGuid": {
+                "GUID_REGEX": [
+                    1.0,
+                    0.44
+                ]
+            },
+            "MailboxOwnerUPN": {
+                "EMAIL_REGEX": [
+                    1.0,
+                    0.44
+                ]
+            },
+            "MailboxOwnerSid": {
+                "SID_REGEX": [
+                    1.0,
+                    0.44
+                ]
+            },
+            "LogonUserSid": {
+                "SID_REGEX": [
+                    1.0,
+                    0.44
+                ]
+            },
+            "Client_IPAddress": {
+                "IPV4_REGEX": [
+                    0.7727272727272727,
+                    0.34
+                ],
+                "IPV6_REGEX": [
+                    0.22727272727272727,
+                    0.1
+                ]
+            },
+            "OfficeId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "SourceRecordId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "AADGroupId": {
+                "GUID_REGEX": [
+                    1.0,
+                    0.01
+                ]
+            },
+            "AppId": {
+                "GUID_REGEX": [
+                    1.0,
+                    0.42
+                ]
+            },
+            "ClientAppId": {
+                "GUID_REGEX": [
+                    1.0,
+                    0.08
+                ]
+            }
+        },
+        "SecurityEvent": {
+            "TenantId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "Account": {
+                "WINPATH_REGEX": [
+                    0.3870967741935484,
+                    0.36
+                ],
+                "NTACCT_REGEX": [
+                    0.6021505376344086,
+                    0.56
+                ]
+            },
+            "Computer": {
+                "DNS_REGEX": [
+                    0.36,
+                    0.36
+                ]
+            },
+            "SourceComputerId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "EventOriginId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "MG": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "FileHash": {
+                "SHA256_REGEX": [
+                    1.0,
+                    0.13
+                ]
+            },
+            "FilePath": {
+                "NTACCT_REGEX": [
+                    0.7692307692307693,
+                    0.1
+                ]
+            },
+            "IpAddress": {
+                "IPV4_REGEX": [
+                    1.0,
+                    0.45
+                ]
+            },
+            "MandatoryLabel": {
+                "SID_REGEX": [
+                    1.0,
+                    0.15
+                ]
+            },
+            "NewProcessName": {
+                "WINPATH_REGEX": [
+                    1.0,
+                    0.15
+                ],
+                "WINPROCESS_REGEX": [
+                    1.0,
+                    0.15
+                ]
+            },
+            "ObjectName": {
+                "WINPATH_REGEX": [
+                    0.4,
+                    0.04
+                ]
+            },
+            "ParentProcessName": {
+                "WINPATH_REGEX": [
+                    1.0,
+                    0.15
+                ],
+                "WINPROCESS_REGEX": [
+                    1.0,
+                    0.15
+                ]
+            },
+            "Process": {
+                "DNS_REGEX": [
+                    0.4642857142857143,
+                    0.39
+                ],
+                "WINPROCESS_REGEX": [
+                    0.47619047619047616,
+                    0.4
+                ]
+            },
+            "ProcessName": {
+                "WINPATH_REGEX": [
+                    0.21428571428571427,
+                    0.12
+                ],
+                "WINPROCESS_REGEX": [
+                    0.21428571428571427,
+                    0.12
+                ]
+            },
+            "SubjectAccount": {
+                "NTACCT_REGEX": [
+                    0.4375,
+                    0.35
+                ]
+            },
+            "SubjectUserSid": {
+                "SID_REGEX": [
+                    1.0,
+                    0.8
+                ]
+            },
+            "TargetAccount": {
+                "WINPATH_REGEX": [
+                    0.6101694915254238,
+                    0.36
+                ],
+                "NTACCT_REGEX": [
+                    0.15254237288135594,
+                    0.09
+                ]
+            },
+            "TargetUser": {
+                "SID_REGEX": [
+                    1.0,
+                    0.13
+                ]
+            },
+            "TargetUserSid": {
+                "SID_REGEX": [
+                    1.0,
+                    0.59
+                ]
+            },
+            "_ResourceId": {
+                "LXPATH_REGEX": [
+                    1.0,
+                    1.0
+                ],
+                "RESOURCEID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        "SigninLogs": {
+            "TenantId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "ResourceId": {
+                "LXPATH_REGEX": [
+                    1.0,
+                    1.0
+                ],
+                "RESOURCEID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "CorrelationId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "Resource": {
+                "DNS_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "ResourceGroup": {
+                "DNS_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "AlternateSignInName": {
+                "EMAIL_REGEX": [
+                    1.0,
+                    0.41
+                ]
+            },
+            "AppId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "Id": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "IPAddress": {
+                "IPV4_REGEX": [
+                    0.93,
+                    0.93
+                ],
+                "IPV6_REGEX": [
+                    0.07,
+                    0.07
+                ]
+            },
+            "OriginalRequestId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "ResourceIdentity": {
+                "GUID_REGEX": [
+                    1.0,
+                    0.98
+                ]
+            },
+            "UserId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "UserPrincipalName": {
+                "EMAIL_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "AADTenantId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "SignInIdentifier": {
+                "EMAIL_REGEX": [
+                    1.0,
+                    0.41
+                ]
+            },
+            "ResourceTenantId": {
+                "GUID_REGEX": [
+                    1.0,
+                    1.0
+                ]
+            },
+            "HomeTenantId": {
+                "GUID_REGEX": [
+                    1.0,
+                    0.89
+                ]
+            }
+        }
+    },
+    "table_entities": {
+        "CommonSecurityLog": {
+            "DestinationIP": "ipaddress",
+            "SourceIP": "ipaddress",
+            "DestinationTranslatedAddress": "ipaddress",
+            "DestinationHostName": "host",
+            "SourceTranslatedAddress": "ipaddress",
+            "SourceUserName": "account",
+            "DeviceCustomString5": "host",
+            "_ResourceId": "azureresource"
+        },
+        "OfficeActivity": {
+            "OfficeObjectId": "url",
+            "UserId": "account",
+            "UserId_": "account",
+            "ClientIP": "ipaddress",
+            "ClientIP_": "ipaddress",
+            "Site_Url": "url",
+            "Site_Url_": "url",
+            "SourceFileName": "host",
+            "SourceFileName_": "host",
+            "OrganizationName": "host",
+            "MailboxOwnerUPN": "account",
+            "MailboxOwnerSid": "account",
+            "LogonUserSid": "account",
+            "Client_IPAddress": "ipaddress"
+        },
+        "SecurityEvent": {
+            "Account": "account",
+            "Computer": "host",
+            "FileHash": "hash",
+            "FilePath": "account",
+            "IpAddress": "ipaddress",
+            "MandatoryLabel": "account",
+            "NewProcessName": "process",
+            "ObjectName": "file",
+            "ParentProcessName": "process",
+            "Process": "process",
+            "ProcessName": "process",
+            "SubjectAccount": "account",
+            "SubjectUserSid": "account",
+            "TargetAccount": "file",
+            "TargetUser": "account",
+            "TargetUserSid": "account",
+            "_ResourceId": "azureresource"
+        },
+        "SigninLogs": {
+            "ResourceId": "azureresource",
+            "Resource": "host",
+            "ResourceGroup": "host",
+            "AlternateSignInName": "account",
+            "IPAddress": "ipaddress",
+            "UserPrincipalName": "account",
+            "SignInIdentifier": "account"
+        }
+    },
+    "entity_map": {
+        "ipaddress": [
+            [
+                "CommonSecurityLog",
+                "DestinationIP"
+            ],
+            [
+                "CommonSecurityLog",
+                "SourceIP"
+            ],
+            [
+                "CommonSecurityLog",
+                "DestinationTranslatedAddress"
+            ],
+            [
+                "CommonSecurityLog",
+                "SourceTranslatedAddress"
+            ],
+            [
+                "OfficeActivity",
+                "ClientIP"
+            ],
+            [
+                "OfficeActivity",
+                "ClientIP_"
+            ],
+            [
+                "OfficeActivity",
+                "Client_IPAddress"
+            ],
+            [
+                "SecurityEvent",
+                "IpAddress"
+            ],
+            [
+                "SigninLogs",
+                "IPAddress"
+            ]
+        ],
+        "host": [
+            [
+                "CommonSecurityLog",
+                "DestinationHostName"
+            ],
+            [
+                "CommonSecurityLog",
+                "DeviceCustomString5"
+            ],
+            [
+                "OfficeActivity",
+                "SourceFileName"
+            ],
+            [
+                "OfficeActivity",
+                "SourceFileName_"
+            ],
+            [
+                "OfficeActivity",
+                "OrganizationName"
+            ],
+            [
+                "SecurityEvent",
+                "Computer"
+            ],
+            [
+                "SigninLogs",
+                "Resource"
+            ],
+            [
+                "SigninLogs",
+                "ResourceGroup"
+            ]
+        ],
+        "account": [
+            [
+                "CommonSecurityLog",
+                "SourceUserName"
+            ],
+            [
+                "OfficeActivity",
+                "UserId"
+            ],
+            [
+                "OfficeActivity",
+                "UserId_"
+            ],
+            [
+                "OfficeActivity",
+                "MailboxOwnerUPN"
+            ],
+            [
+                "OfficeActivity",
+                "MailboxOwnerSid"
+            ],
+            [
+                "OfficeActivity",
+                "LogonUserSid"
+            ],
+            [
+                "SecurityEvent",
+                "Account"
+            ],
+            [
+                "SecurityEvent",
+                "FilePath"
+            ],
+            [
+                "SecurityEvent",
+                "MandatoryLabel"
+            ],
+            [
+                "SecurityEvent",
+                "SubjectAccount"
+            ],
+            [
+                "SecurityEvent",
+                "SubjectUserSid"
+            ],
+            [
+                "SecurityEvent",
+                "TargetUser"
+            ],
+            [
+                "SecurityEvent",
+                "TargetUserSid"
+            ],
+            [
+                "SigninLogs",
+                "AlternateSignInName"
+            ],
+            [
+                "SigninLogs",
+                "UserPrincipalName"
+            ],
+            [
+                "SigninLogs",
+                "SignInIdentifier"
+            ]
+        ],
+        "azureresource": [
+            [
+                "CommonSecurityLog",
+                "_ResourceId"
+            ],
+            [
+                "SecurityEvent",
+                "_ResourceId"
+            ],
+            [
+                "SigninLogs",
+                "ResourceId"
+            ]
+        ],
+        "url": [
+            [
+                "OfficeActivity",
+                "OfficeObjectId"
+            ],
+            [
+                "OfficeActivity",
+                "Site_Url"
+            ],
+            [
+                "OfficeActivity",
+                "Site_Url_"
+            ]
+        ],
+        "hash": [
+            [
+                "SecurityEvent",
+                "FileHash"
+            ]
+        ],
+        "process": [
+            [
+                "SecurityEvent",
+                "NewProcessName"
+            ],
+            [
+                "SecurityEvent",
+                "ParentProcessName"
+            ],
+            [
+                "SecurityEvent",
+                "Process"
+            ],
+            [
+                "SecurityEvent",
+                "ProcessName"
+            ]
+        ],
+        "file": [
+            [
+                "SecurityEvent",
+                "ObjectName"
+            ],
+            [
+                "SecurityEvent",
+                "TargetAccount"
+            ]
+        ]
+    }
+}
