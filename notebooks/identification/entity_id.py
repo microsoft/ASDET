@@ -1,16 +1,19 @@
 """Entity Identification Module"""
 
 
-import numpy as np
 import json
 import re
 import pprint
+import networkx as nx
+import matplotlib.pyplot as plt
+import pandas as pd
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
-from IPython.display import HTML
-from IPython.display import display
+from IPython.display import HTML, display
 from tqdm.auto import tqdm
 from msticpy.nbtools import nbwidgets
+from pyvis.network import Network
 
 
 DEF_REGEXES = {
@@ -210,6 +213,7 @@ class EntityIdentifier:
         # selected tables
         self.selected_tables = nbwidgets.SelectSubset(source_items=list(self.qry_prov.schema.keys()), auto_display=False)
 
+
     def save_results(self, path: str = "./results.json"):
         """
         Save _regex_matches, table_entities, and entity_map to a JSON file.
@@ -227,6 +231,7 @@ class EntityIdentifier:
             "entity_map": self.entity_map
         }
         save_to_json_file(results, path)
+
 
     def read_results(self, path: str = "./results.json"):
         """
@@ -352,16 +357,6 @@ class EntityIdentifier:
         return HTML(f"{header} {''.join(table_html)}</tbody></table>")
 
 
-    def display_regex_matches(self):
-        """
-        Displays a widget to allow user to select a table to be matched for regexes.
-        """
-        nbwidgets.SelectItem(
-            item_list=list(self.qry_prov.schema.keys()),
-            height="300px",
-            action=self.table_match_to_html,
-        )
-
     def interpret_matches(self, regex_matches):
         """
         For each column apply priority and match percentage logic to assign an entity to the column.
@@ -434,10 +429,12 @@ class EntityIdentifier:
         return entity_dict
 
 
+    # Run methods
+
     def detect_entities(self, tables=None, sample_size="100"):
         """
         Runs the search_single_table, interpret_matches, and create_entity_map functions on given tables.
-        Persists returned values in instance result attributes.
+        Persists/saves returned values in instance result attributes.
 
         Parameters
         ----------
@@ -487,6 +484,64 @@ class EntityIdentifier:
         self.detect_entities(self.qry_prov.schema.keys())
 
 
+    # Visualizations
+
+    def show_entity_graph(self, interactive=True):
+        """
+        Shows a network graph of which of the selected tables contain which entities.
+        """
+        G = nx.Graph()
+        val_map = {}
+        for entity, pair in self.entity_map.items():
+            for table, col in pair:
+                G.add_edge(entity, table, column=col)
+                G.nodes[table]['color'] = 'red'
+                val_map[table] = 1.0
+
+        if interactive:
+            nt = Network(notebook=False)
+            nt.from_nx(G)
+            nt.show('nx.html')
+        else:
+            plt.figure(3,figsize=(12,12)) 
+            values = [val_map.get(node, 0) for node in G.nodes()]
+            nx.draw_networkx(G, cmap=plt.get_cmap('spring'), node_color=values)
+            plt.show()
+
+
+    def show_single_entity_graph(self, entity: str):
+        """
+        Shows a network graph of the tables and columns for a single entity.
+        """
+        G = nx.Graph()
+        for table, col in self.entity_map[entity]:
+            G.add_edge(entity, table)
+            G.add_edge(table, col)
+            G.nodes[table]['color'] = 'orange'
+            G.nodes[col]['color'] = 'red'
+
+        G.nodes[entity]['color'] = 'yellow'
+        nt = Network(notebook=False)
+        nt.from_nx(G)
+        nt.show('nx.html')
+
+
+    def show_entity_dist(self):
+        """
+        Shows a bar chart of the distribution of entities in the dataset of selected tables.
+        """
+        entity_counts = defaultdict(int)
+
+        for entity, pair in self.entity_map.items():
+            for table, col in pair:
+                entity_counts[entity] += 1
+                
+        entity_count_ser = pd.Series(entity_counts)
+        entity_count_ser.sort_values(ascending=False).plot.barh(figsize=(10,10))
+
+
+    # Printing methods
+
     @staticmethod
     def _print_dict(json_dict):
         """
@@ -508,6 +563,8 @@ class EntityIdentifier:
     def disp_entity_map(self):
         self._print_dict(self.entity_map)
 
+
+    # Autogenerating queries
 
     def generate_query(self, entity_type: str, search_value: str, query_template=QUERY_TEMP):
         """
@@ -531,16 +588,17 @@ class EntityIdentifier:
         return queries
 
 
-def run_queries(self, queries):
-    """
-    Runs the queries.
+    def run_queries(self, queries):
+        """
+        Runs the queries.
 
-    Args:
-        queries (List)): Output of generate_query function.
-    """
-    for query in queries:
-        query_result = self.qry_prov.exec_query(query)
-        if len(query_result) > 0:
-            print(query)
-            print("-" * len(query))
-            display(query_result)
+        Args:
+            queries (List)): Output of generate_query function.
+        """
+        for query in queries:
+            query_result = self.qry_prov.exec_query(query)
+            if len(query_result) > 0:
+                print(query)
+                print("-" * len(query))
+                display(query_result)
+
