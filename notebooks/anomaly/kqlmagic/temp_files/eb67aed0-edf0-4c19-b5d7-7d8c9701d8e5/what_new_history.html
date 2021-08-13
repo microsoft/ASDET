@@ -1,0 +1,1173 @@
+
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Kqlmagic - what's new</title>
+        </head>
+        <body>
+        <h1>HISTORY</h1>
+<h2>Version 0.1.114</h2>
+<ul>
+<li>
+<h3>New Major Feature: kqlmagic kernel over python kernel</h3>
+<ul>
+<li>to switch from python kernel to kqlmagic kernel execute <code>%kql --activate_kernel</code></li>
+<li>to switch back from kqlmagic kernel to python kernel execute <code>%kql --deactivate_kernel</code></li>
+<li>Once kqlmagic kernel activated:</li>
+<li>By default code cells are executed as kqlmagic cells, unless the first word starts with a cell magic prefix "%%"</li>
+<li>If the first word in the cell starts with the cell magic "%%" prefix, it will be executed by the proper cell magic (all python kernel cell magics are supported)</li>
+<li>If the first word in the cell starts with the line magic "%" prefix, it will be executed by the proper line magic in the context of kqlmagic cell (all python kernel line magics are supported)</li>
+<li>Additional %%py, %%pyro and %%pyrw cell magics (only in kqlmagic kernel) are supported to execute python code (see more info on py, pyro and pyrw kqlmagic commands below)</li>
+<li>All python kernel extensions and magics are supported</li>
+<li>To execute python cells specify %%py or %%pyro or %%py as the first word in the cell</li>
+<li>All python kernel extensions</li>
+<li>All python kernel cell magics are supported, including kqlmagic "%%kql"</li>
+<li>All python kernel line magics are supported, including kqlmagic "%kql"</li>
+</ul>
+</li>
+<li>
+<h3>New platform: Support Kqlmagic on Azure Machine Learning service 'azureml'</h3>
+<ul>
+<li><strong>Note: KQLMAGIC_AZUREML_COMPUTE environment variable should be set, otherwise popup windows might not function properly.</strong></li>
+</ul>
+</li>
+<li>
+<h3>New SSO Authentication Feature: -try_vscode_login option</h3>
+<ul>
+<li>Before authenticating with the specified connection string, will try first to get token from Visual Studio Code Azure Account login.</li>
+<li>It will use the connection string tenant id (if specified) as a parameter to AzAzure Account</li>
+<li>if fail to get token from vscode, use the connection string to authenticate</li>
+<li>for example:<ul>
+<li><code>%kql azureDataExplorer://code;cluster='help';database='Samples' -try_vscode_login</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New SSO Authentication Feature: -try_msi option</h3>
+<ul>
+<li>Before authenticating with the specified connection string, will try first to get token from MSI local endpoint.</li>
+<li>if fail to get token from endpoint, use the connection string to authenticate</li>
+<li>
+<p>Expects as parameter a dictionary with the optional MSI params: <strong>resource, client_id/object_id/mis_res_id, cloud_environment, timeout</strong></p>
+<ul>
+<li><strong>timeout</strong>: If provided, must be in seconds and indicates the maximum time we'll try to get a token before raising MSIAuthenticationTimeout</li>
+<li><strong>client_id</strong>: Identifies, by Azure AD client id, a specific explicit identity to use when authenticating to Azure AD. Mutually exclusive with object_id and msi_res_id.</li>
+<li><strong>object_id</strong>: Identifies, by Azure AD object id, a specific explicit identity to use when authenticating to Azure AD. Mutually exclusive with client_id and msi_res_id.</li>
+<li><strong>msi_res_id</strong>: Identifies, by ARM resource id, a specific explicit identity to use when authenticating to Azure AD. Mutually exclusive with client_id and object_id.</li>
+<li><strong>cloud_environment</strong> (msrestazure.azure_cloud.Cloud): A targeted cloud environment</li>
+<li><strong>resource</strong> (str): Alternative authentication resource, default is https://management.core.windows.net/'.</li>
+</ul>
+</li>
+<li>
+<p>for example:</p>
+<ul>
+<li><code>%kql azureDataExplorer://code;cluster='help';database='Samples' -try_msi={"client_id":"00000000-0000-0000-0000-000000000000"}</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New Authentication Feature: -try_token option (bring your own token)</h3>
+<ul>
+<li>Before authenticating with the specified connection string, will try first to authenticate with this token.</li>
+<li>Expects as a parameter a dictionary with AAD v1 or v2 token properties. At least: tokenType/token_type, accessToken/access_token</li>
+<li>for example:<ul>
+<li><code>%kql azureDataExplorer://code;cluster='help';database='Samples' -try_token={"tokenType":"bearer","accessToken":"&lt;your-token-string&gt;"}</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New Authentication Feature: MSAL interactive login</h3>
+<ul>
+<li>to use this mode connection string should be set to "code" mode.</li>
+<li>to force using this mode, 'code_auth_interactive_mode' option must be set to "auth_code"</li>
+<li>Otherwise 'device_code' will be used.</li>
+<li>If 'code_auth_interactive_mode' option is set to "auto", then if kernel is located on the local machine it will use "auth_code" otherwise "device_code".</li>
+</ul>
+</li>
+<li>
+<h3>New Feature: Control dependencies</h3>
+</li>
+<li>
+<p>Features that require a missing dependency will be disabled.</p>
+</li>
+<li>Custom install is enabled by installing KqlmagicCustom instaed of Kqlmagic.<ul>
+<li>Many custumization combinations are available. (see custom install in README.md)</li>
+<li>KqlmagicCustom provides full control over which dependencies will be installed, by specifying extra requires</li>
+<li>for example <code>pip install KqlmagicCustom[extended, pandas, plotly]</code></li>
+</ul>
+</li>
+<li>install of Kqlmagic is the same as install of KqlmagicCustom[default]</li>
+<li>if KqlmagicCustom was installed KQLMAGIC_EXTRAS_REQUIRE environment variable should be set to the same list of extras that were used to install (if not set, 'default' will be used).<ul>
+<li>for example: <code>KQLMAGIC_EXTRAS_REQUIRE=&lt;extra1&gt;,&lt;extra2&gt;</code></li>
+</ul>
+</li>
+<li>on Kqlmagic load, will raise an error for missing MANDATORY packages</li>
+<li>on Kqlmagic load will warn on missing packages that were specified in KQLMAGIC_EXTRAS_REQUIRE (if not set, 'default' will be used)</li>
+<li>
+<p>dependencies warning can also be disabled by setting 'warn_missing_dependencies' option to False</p>
+</li>
+<li>
+<h3>New result properties</h3>
+<ul>
+<li><strong>cursor</strong> - displays the Cursor property that returned with the query results (see KQL Database cursors in KQL documentation). This value is required for queries that use the Cursor functions: current_cursor(), cursor_after() and cursor_before_or_at()</li>
+</ul>
+</li>
+<li>
+<h3>New options:</h3>
+<ul>
+<li><strong>warn_missing_dependencies</strong> - bool - On Kqlmgaic load, warn missing dependencies (default: True)</li>
+<li><strong>warn_missing_env_variables</strong> - bool - On Kqlmagic load, warn missing environment variables (default: True)</li>
+<li><strong>assign_var</strong> - str - If specified, the result will be assigned to this variable in user's namespace</li>
+<li><strong>cursor_var</strong> - str - If specified, the cursor value returned from the query will be assigned to this variable in user's namespace</li>
+<li><strong>request_cache_max_age</strong> - int - specifies, in seconds, the maximum amount of time a http cached response is valid for. If set to 0, will bypass the response cache and always query the downstream services. If set to None, will use cached reponse as long it doesn't expires.</li>
+<li><strong>allow_single_line_cell</strong> - bool - When set to True, allows %%kql cell magic to include one line only, without body. (default: True)</li>
+<li><strong>allow_py_comments_before_cell</strong> - bool - When set to True, allows %%kql cell magic to be prefixed by python comments. (default: True)</li>
+<li><strong>kqlmagic_kernel</strong> - bool - When set to True, Kqlmagic kernel will be active. (can be set on load, and by --active_kernel commad)</li>
+<li><strong>debug</strong> - bool - Used internally for debug only, when set to True, debug prints are displayed  (can be set on load only)</li>
+<li><strong>cache</strong> - str - Cache query results to be saved to the specified folder. (can be set on load, and by --cache commad)</li>
+<li><strong>use_cache</strong> - str - Use cached query results from the specified folder, instead of executing the query. (can be set on load, and by --use_cache commad)</li>
+<li><strong>extras_require</strong> - str - A read-only option, can be set on Kqlmagic load, comma separated list of setup extras_require values that should be the same as specified at KqlmagicCustom install</li>
+<li><strong>is_magic</strong> - bool - A read-only option, set internally, that specify whether it is runing as magic or an imported module.</li>
+<li><strong>kernel_id</strong> - str - A read-only option, set internally, specify current notebook kernel_id as set by ipython kernel</li>
+<li><strong>code_auth_interactive_mode</strong> - str - Sets code authentication interative mode, if "auto" is set, "auth_code" will be seleted if kernel is local, otherwise "device_code" is used. valid values: "auto", "device_code" and "auth_code". (default: "device_code")</li>
+</ul>
+</li>
+<li>
+<h3>Support additional Azure Data Explorer Client Request Properties</h3>
+<ul>
+<li><strong>materialized_view_shuffle</strong>: A hint to use shuffle strategy for materialized views that are referenced in the query. The property is an array of materialized views names and the shuffle keys to use. examples: 'dynamic([ { "Name": "V1", "Keys" : [ "K1", "K2" ] } ])' (shuffle view V1 by K1, K2) or 'dynamic([ { "Name": "V1" } ])' (shuffle view V1 by all keys) [dict]</li>
+<li><strong>query_cursor_disabled</strong>: Disables usage of cursor functions in the context of the query. [bool]</li>
+<li><strong>query_force_row_level_security</strong>: If specified, forces Row Level Security rules, even if row_level_security policy is disabled [bool]</li>
+<li><strong>query_python_debug</strong>: If set, generate python debug query for the enumerated python node (default first). [int]</li>
+<li><strong>query_results_apply_getschema</strong> If set, retrieves the schema of each tabular data in the results of the query instead of the data itself. [bool]</li>
+<li><strong>query_results_cache_max_age</strong>: If positive, controls the maximum age of the cached query results which Kusto is allowed to return [str]</li>
+<li><strong>request_block_row_level_security</strong>: If specified, blocks access to tables for which row_level_security policy is enabled [bool]</li>
+<li><strong>request_description</strong>: Arbitrary text that the author of the request wants to include as the request description. [str]</li>
+<li><strong>request_external_table_disabled</strong>: If specified, indicates that the request cannot invoke code in the ExternalTable. [bool]</li>
+<li><strong>request_impersonation_disabled</strong>: If specified, indicates that the service shouldn't impersonate the caller's identity. [bool]</li>
+<li><strong>request_remote_entities_disabled</strong>: If specified, indicates that the request cannot access remote databases and clusters. [bool]</li>
+<li><strong>request_sandboxed_execution_disabled</strong>: If specified, indicates that the request cannot invoke code in the sandbox. [bool]</li>
+</ul>
+</li>
+<li>
+<h3>New envrironment variables:</h3>
+<ul>
+<li><strong>KQLMAGIC_KERNEL</strong></li>
+<li>Specify whether Kqlmagic kernel should be activated on Kqlmagic load. Valid values are True or False.<br></li>
+<li>
+<p>Same as executing --activate_kernel / --deactivate_kernel</p>
+</li>
+<li>
+<p><strong>KQLMAGIC_EXTRAS_REQUIRE (or KQLMAGIC_EXTRAS_REQUIRES)</strong></p>
+</li>
+<li>
+<p>if KqlmagicCustom was installed KQLMAGIC_EXTRAS_REQUIRE environment variable should be set to the same list of extras that were used to install (if not set, 'default' will be used)</p>
+</li>
+<li>Default: 'default' (all extras)</li>
+<li>for example:<ul>
+<li><code>KQLMAGIC_EXTRAS_REQUIRE=plotly,pandas,sso</code></li>
+<li><code>KQLMAGIC_EXTRAS_REQUIRE=default</code></li>
+<li><code>KQLMAGIC_EXTRAS_REQUIRE=jupyter-basic,widgets</code></li>
+</ul>
+</li>
+<li>on Kqlmagic load will warn on missing packages that were specified in KQLMAGIC_EXTRAS_REQUIRE (if not set, 'default' will be used)</li>
+<li>
+<p>Features that require a missing dependency will be disabled.</p>
+</li>
+<li>
+<p><strong>KQLMAGIC_AZUREML_COMPUTE</strong></p>
+</li>
+<li>
+<p>Specified azureml backend compute host address. If not specified popup windows might not work properly.</p>
+</li>
+<li>Default: value taken from KQLMAGIC_NOTEBOOK_SERVICE_ADDRESS.</li>
+<li>
+<p>for example:</p>
+<ul>
+<li><code>KQLMAGIC_AZUREML_COMPUTE=https://kqlmagic.eastus.instances.azureml.ms</code></li>
+</ul>
+</li>
+<li>
+<p><strong>KQLMAGIC_DEBUG</strong></p>
+</li>
+<li>Used internally for debug only</li>
+<li>
+<p>If exist on Kqlmagic load and set to True, debug prints are displayed</p>
+</li>
+<li>
+<p><strong>KQLMAGIC_CACHE</strong></p>
+</li>
+<li>Specifies a folder name for storing query results that can be used as cache for same queries.</li>
+<li>valid value if sepcified is a valid folder string</li>
+<li>Same as executing the --cache command</li>
+<li>
+<p>The cache will be used by queries that will match and --use_cache is set to same folder (see: --use_cache command, KQLMAGIC_USE_CACHE environment variable, and cache://<myCacheFolder> schema)</p>
+</li>
+<li>
+<p><strong>KQLMAGIC_USE_CACHE</strong></p>
+</li>
+<li>Specifies a folder that holds cached query results.</li>
+<li>valid value if sepcified is a valid folder string</li>
+<li>Same as executing the --use_cache command</li>
+<li>for query that match an entry in specified folder cache, result will be taken from cache folder (see: --cache command and KQLMAGIC_CACHE environment variable, and cache://<myCacheFolder> schema)</li>
+</ul>
+</li>
+<li>
+<h3>New Command: --bug-report command</h3>
+<ul>
+<li>should be invoked immediately after something goes wrong.</li>
+<li>gathers last cell execution state, ready to be copy/paste to Kqlmagic github issues (you must have an account in github)</li>
+<li>Kqlmagic version</li>
+<li>platform information</li>
+<li>python information</li>
+<li>Kqlmagic dependencies version </li>
+<li>Kqlmagic default options</li>
+<li>Kqlmagic connections</li>
+<li>Kqlmagic environment variables</li>
+<li>Last kql execution context (options, parameters, tags, request, response), including error stack</li>
+<li>for example:</li>
+<li><code>%kql --bug-report</code></li>
+</ul>
+</li>
+<li>
+<h3>New Command: --conn command</h3>
+<ul>
+<li>Displays connections info</li>
+<li>for example:</li>
+<li><code>%kql --conn // list connections</code></li>
+<li><code>%kql --conn "Samples@help" // display connection's details</code></li>
+</ul>
+</li>
+<li>
+<h3>New Command: --cache command</h3>
+<ul>
+<li>Enables / Disables caching query result to the spacified folder</li>
+<li>If a folder is not specified caching is disabled</li>
+<li>The cache will be used by queries that will match and --use_cache is set to same folder</li>
+<li>OPTIONAL: Stored cached data can be also queried using the cache schema: cache://<cache-folder-name></li>
+<li>Useful for demos and for scenarios when queries results must be preserved </li>
+<li>for example:</li>
+<li><code>%kql --cache "myCachefolder"    // enables cache in myCachefolder folder</code></li>
+<li><code>%kql --cache                    // disables caching</code></li>
+</ul>
+</li>
+<li>
+<h3>New Command: --use_cache command</h3>
+<ul>
+<li>Enables / Disables usage of cached query results data stored in the spacified folder</li>
+<li>If a folder is not specified usage of cached data is disabled</li>
+<li>for query that match an entry in specified folder cache, result will be taken from that cache folder</li>
+<li>OPTIONAL: Stored cached data can be also queried using the cache schema: cache://<cache-folder-name></li>
+<li>Useful for demos and for scenarios when queries results must be preserved </li>
+<li>for example:</li>
+<li><code>%kql --use_cache "myCachefolder"   // enables usage of cached data in myCachefolder folder</code></li>
+<li><code>%kql --use_cache                   // disables usage of cached data</code></li>
+</ul>
+</li>
+<li>
+<h3>New Feature: sequence of cells within one %%kql cell</h3>
+<ul>
+<li>%%kql cell can include multiple blocks of lines separated by one or more empty line. And each block may be either:</li>
+<li>multi line kql query<ul>
+<li>must be followed by an empty line or end of cell</li>
+<li>optional, block can start with %%kql</li>
+</ul>
+</li>
+<li>single line kql query<ul>
+<li>optional, line can start with %kql</li>
+</ul>
+</li>
+<li>kqlmagic command<ul>
+<li>-optional line can start with %kql</li>
+</ul>
+</li>
+<li>ipython line magic</li>
+<li>ipython cell magic<ul>
+<li>must be followed by an empty line or end of cell</li>
+</ul>
+</li>
+<li>A cell magic block contains all lines till new cell magic starts or end of cell</li>
+<li>A sequence of line magics can be in one block</li>
+<li>for example:</li>
+<li>```
+  %%kql
+  StormEvents
+  | where Timestamp &gt; ago(31d)
+  | summarize TotalEvents = count()</li>
+</ul>
+<p>%%pyro
+  from IPython.display import HTML
+  def counter_to_htm_msg(title:str, value):
+      return HTML(f"<p><FONT SIZE=3>{title}</FONT></p><p><FONT SIZE=7><b>{int(str(value)):,d}</b></FONT></p>")</p>
+<p>counter_to_htm_msg("Total Storm Events", <em>kql_raw_result</em>[0]["Count"])
+  ```</p>
+</li>
+<li>
+<h3>New Commands: --py/pyro/pyrw command</h3>
+<ul>
+<li>Execute python code from within a %%kql cell</li>
+<li>pyro (python readonly) will execute but won't change user namespace</li>
+<li>pyrw (python read and write) will execute and it can change user namespace</li>
+<li>py is the same as pyrw</li>
+<li>py is different from the ipython builtin %%python cell magic as it runs in the user's name space, and if last statement is an expression it returns its value</li>
+<li>for example:</li>
+<li><code>%kql --py print("hello world")</code></li>
+<li>```
+  %%kql
+  StormEvents
+  | where Timestamp &gt; ago(31d)
+  | summarize TotalEvents = count()</li>
+</ul>
+<p>--py
+  from IPython.display import HTML
+  def show_counter(title:str, value):
+      return HTML(f"<p><FONT SIZE=3>{title}</FONT></p><p><FONT SIZE=7><b>{int(str(value)):,d}</b></FONT></p>")
+  show_counter("Total number of storm events in last months", <em>kql_raw_result</em>[0]["TotalEvents"])
+  <code>- magic syntax for py/pyro/pyrw from within %%kql magic can also is enable for example:
+-</code>
+  %%kql
+  StormEvents
+  | where Timestamp &gt; ago(31d)
+  | summarize TotalEvents = count()</p>
+<p>%%py
+  from IPython.display import HTML
+  def show_counter(title:str, value):
+      return HTML(f"<p><FONT SIZE=3>{title}</FONT></p><p><FONT SIZE=7><b>{int(str(value)):,d}</b></FONT></p>")
+  show_counter("Total number of storm events in last months", <em>kql_raw_result</em>[0]["TotalEvents"])
+  ```
+  - ### New Command: --line_magic command</p>
+<ul>
+<li>Execute an ipython line magic within a %%kql cell</li>
+<li>for example:</li>
+<li><code>%%kql 
+  --line_magic %env VAR=VALUE</code></li>
+<li>line magic prefix '%' is optional</li>
+<li>for example:</li>
+<li><code>%%kql
+  --line_magic env VAR=VALUE</code></li>
+<li>--line_magic command name is optional, if line magic is written with the line magic prefix '%'</li>
+<li>for example:</li>
+<li><code>%%kql
+  %env VAR=VALUE</code></li>
+</ul>
+</li>
+<li>
+<h3>New Command: --activate_kernel command</h3>
+<ul>
+<li>Activates kqlmagic kernel over python kernel (see more above about this new feature)</li>
+</ul>
+</li>
+<li>
+<h3>New Command: --deactivate_kernel command</h3>
+<ul>
+<li>Deactivates kqlmagic kernel over python kernel. Switch back to  python kernel</li>
+</ul>
+</li>
+<li>
+<h3>New Command: --cell_magic command</h3>
+<ul>
+<li>Execute an ipython cell magic within a %%kql cell</li>
+<li>for example:</li>
+<li><code>%%kql
+  --cell_magic %%script bash
+    for i in 1 2 3; do
+        echo $i
+    done</code></li>
+<li>cell magic prefix '%%' is optional</li>
+<li>for example:</li>
+<li><code>%%kql
+  --cell_magic script bash
+    for i in 1 2 3; do
+        echo $i
+    done</code></li>
+<li>--cell_magic command name is optional, if cell magic is written with the cell magic prefix '%%'</li>
+<li>for example:</li>
+<li><code>%%kql
+  %%script bash
+    for i in 1 2 3; do
+        echo $i
+    done</code></li>
+</ul>
+</li>
+<li>
+<h3>New Feature: support ADX SQL query syntax</h3>
+<ul>
+<li>support EXPLAIN - translate SQL query to KQL query</li>
+<li>SQL to Kusto cheat sheet: https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/sqlcheatsheet</li>
+<li>MS-TDS/T-SQL Differences between Kusto Microsoft SQL Server: https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/tds/sqlknownissues</li>
+<li>for example:</li>
+<li><code>sql
+  %%kql 
+  EXPLAIN // translate SQL queries to KQL
+  SELECT COUNT_BIG(*) as C FROM StormEvents</code></li>
+<li><code>sql
+  %%kql 
+  SELECT * FROM dependencies
+  LEFT OUTER JOIN exception
+  ON dependencies.operation_Id = exceptions.operation_Id</code></li>
+</ul>
+</li>
+<li>
+<h3>New help topics</h3>
+<ul>
+<li>'sql' - Azure Data Explorer SQL support</li>
+<li>'aria - How to query Aria's Azure Data Explorer databases.</li>
+<li>'env' - Lists all Kqlmagic environment variables and their purpose.</li>
+<li>'options' - Lists the available options, and their impact on the submit query command.</li>
+<li>for example:</li>
+<li><code>%kql --help "sql"</code></li>
+<li><code>%kql --help "aria"</code></li>
+<li><code>%kql --help "saw"</code></li>
+<li><code>%kql --help "env"</code></li>
+<li><code>%kql --help "options"</code></li>
+</ul>
+</li>
+<li>
+<h3>New feature - kql_stop Kqlmagic Module</h3>
+<ul>
+<li>kql_stop() was added to module, that resets Kqlmagic (equivalent to %unload_ext when used as a magic)</li>
+</ul>
+</li>
+<li>
+<h3>Improvements</h3>
+<ul>
+<li>Auto detect of Azure Machine Learning 'azureml' jupyter environment</li>
+<li>Auto detect of Visual Studio Code on Linux</li>
+<li>support supress output, using ";" as last character (whitespace characters are ignored) for all commands</li>
+<li>to suppress a cell input, last line should include only the semicolon ";" (whitespace characters are ignored)</li>
+<li>options can be before or after commands parameter</li>
+<li>%%kql cell query can contain a mix of queries and commands in the same cell separated by empty line</li>
+<li>allow single line %%kql cell. To disable it, set allow_single_line_cell option to False</li>
+<li>allow %%kql cell to be prefixed by python comments. To disable it, set allow_py_comments_before_cell option to False</li>
+</ul>
+</li>
+<li>
+<h3>Fix</h3>
+<ul>
+<li>fix connection list display</li>
+<li>fix sso cleanup on Kqlmagic load</li>
+<li>fix parse short kusto cluster name in connection string</li>
+<li>fix platform specific modules to be imported on right platform only</li>
+<li>fix performance hit on null logger</li>
+<li>fix token claims decode</li>
+<li>fix parse option for Kqlmagic commands</li>
+<li>fix popup windows for Kqlmagic commands</li>
+<li>fix file system memory leaks</li>
+<li>fix http requests memory leaks</li>
+<li>fix suppress output for cell Kqlmagic, won't suppress if ";" is prefixed by not whistespace chars</li>
+<li>fix suppress output for commands</li>
+<li>fix commands' string parameter can have whitespaces</li>
+<li>fix --config to return value when a key is set</li>
+<li>fix nested activation of kqlmagic</li>
+<li>fix default request cache control to be no cache</li>
+<li>fix load/unload/reload reset Kqlmagic state</li>
+<li>fix common Kqlmagic magic state with imported kql from Kqlmagic package</li>
+<li>fix conversion of dynamic value 0</li>
+<li>fix timedelta_to_timespan</li>
+<li>fix Kqlmagic init, setting help menu in JupyterLab</li>
+<li>fix 'missing keys' error when user/password auth is initiated after code auth</li>
+</ul>
+</li>
+<li>
+<h3>Other</h3>
+<ul>
+<li>replace AAD adal package with msal package</li>
+<li>remove package six</li>
+<li>remove package pytz</li>
+<li>remove package jwt</li>
+<li>remove package seaborn</li>
+<li>remove old Visual Studio Enterprise project files</li>
+<li>fix Pylance warnings / errors</li>
+<li>add SECURITY.md file</li>
+<li>update README.md and README.rst</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.113</h2>
+<ul>
+<li>
+<h3>Fix</h3>
+<ul>
+<li>fix Kqlmagic failure (pandas exception) when auto_dataframe option is set to True</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.112</h2>
+<ul>
+<li>
+<h3>New Feature -enable_curly_brackets_params option</h3>
+<ul>
+<li>when set, strings within curly brackets will be evaluated as a python expression, and if evaluation succeeds result will replace the string (including the curly brackets).</li>
+<li>if evaluation fails it won't be modified, including the curly brackets.</li>
+<li>to escape curly brackets they must be doubled {{something}}.</li>
+<li>Abbreviation: 'ecbp'</li>
+<li>type mapping from python to KQL types is as follows:<ul>
+<li>int -&gt; long</li>
+<li>float -&gt; real</li>
+<li>str -&gt; string</li>
+<li>bool -&gt; bool</li>
+<li>datetime -&gt; datetime</li>
+<li>timedelta -&gt; timespan</li>
+<li>dict, list, set, tuple -&gt; dynamic (only if can be serialized to json)</li>
+<li>pandas dataframe -&gt; view table</li>
+<li>None -&gt; null</li>
+<li>unknown, str(value) == 'nan' -&gt; real(null)</li>
+<li>unknown, str(value) == 'NaT' -&gt; datetime(null)</li>
+<li>unknown str(value) == 'nat' -&gt; time(null)</li>
+<li>other -&gt; string</li>
+</ul>
+</li>
+<li>
+<p>for example:</p>
+<ul>
+<li>count = 10</li>
+<li>interval = timedelta(days=5, hours=3)</li>
+<li>
+<p>%kql -ecbp requests | where timestamp &gt; ago({interval}) | limit {count+5}</p>
+</li>
+<li>
+<p>p_dict = {'p_limit':20, 'p_not_state':'IOWA'}</p>
+</li>
+<li>%%kql<ul>
+<li>-ecbp -params_dict=p_dict</li>
+<li>StormEvents</li>
+<li>| where State != {p_not_state}</li>
+<li>| summarize count() by State</li>
+<li>| sort by count_</li>
+<li>| limit {p_limit}</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New syntax Feature: enable KQL style // comments in commands and options</h3>
+<ul>
+<li>comments can be used within all lines of Kqlmagic, not only in query part</li>
+<li>
+<p>for example:</p>
+<ul>
+<li>%kql azureDataExplorer://code;cluster='help';database='Samples' // -try_azcli_login</li>
+<li>
+<p>%%kql</p>
+<ul>
+<li>//-show_query</li>
+<li>requests </li>
+<li>| where timestamp &gt; ago({interval}) </li>
+<li>| limit {count+5}</li>
+</ul>
+</li>
+<li>
+<p>%kql // --version</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New Log Analytics / Application Insights Feature: +timespan query property</h3>
+<ul>
+<li>enables to set the 'timespan' property in requests to Log Analytics or Application Insights.</li>
+<li>The timespan over which to query data. This is an ISO8601 time period value. This timespan is applied in addition to any that are specified in the query expression.</li>
+<li>see: https://docs.microsoft.com/en-us/rest/api/application-insights/query/get</li>
+<li>for example:<ul>
+<li><code>%kql +timespan="P1Y2M10DT2H30M/2008-05-11T15:30:00Z" ...your-query...</code></li>
+<li><code>%kql +timespan="2007-03-01T13:00:00Z/P1Y2M10DT2H30M" ...your-query...</code></li>
+<li><code>%kql +timespan="2007-03-01T13:00:00Z/2008-05-11T15:30:00Z" ...your-query...</code></li>
+<li><code>`%kql +timespan=timedelta(days=5,minutes=22,seconds=2) ...your-query...</code></li>
+<li><code>%kql +timespan=[timedelta(days=5,minutes=22,seconds=2),datetime.now()] ...your-query...</code></li>
+<li><code>%kql +timespan=["P1Y2M10DT2H30M",datetime.now()] ...your-query...</code></li>
+<li><code>%kql +timespan=[ten_years_ago,"P1Y2M10DT2H30M"] ...your-query...</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New Log Analytics Feature: +workspaces query property</h3>
+<ul>
+<li>enables to set the 'workspaces' property in requests to Log Analytics.</li>
+<li>For either implicit or explicit cross-application queries, specify resources you will be accessing</li>
+<li>see https://dev.loganalytics.io/documentation/Using-the-API/Cross-Resource-Queries</li>
+<li>for example:<ul>
+<li><code>%kql +workspaces=["AIFabrikamDemo1", "AIFabrikamDemo2"] ...your-query...</code></li>
+<li><code>%kql +workspaces='3cc2e581-5032-4ccf-ac05-844b2867ee15' ...your-query...</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New Application Insights Feature: +applications query property</h3>
+<ul>
+<li>enables to set the 'applications' property in requests to Application Insights.</li>
+<li>For either implicit or explicit cross-application queries, specify resources you will be accessing</li>
+<li>see: https://dev.applicationinsights.io/documentation/Using-the-API/Cross-Resource-Queries</li>
+<li>for example:<ul>
+<li><code>%kql +applications=["AIFabrikamDemo"] ...your-query...</code></li>
+<li><code>%kql +applications='3cc2e581-5032-4ccf-ac05-844b2867ee15' ...your-query...</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New SSO Authentication Feature: -try_azcli_login option</h3>
+<ul>
+<li>Before authenticating with the specified connection string, will try first to get token from Azure CLI.</li>
+<li>It will use the connection string tenant id (if specified) as a parameter to Azcli</li>
+<li>if socket not found use the connection string to authenticate</li>
+<li>for example:<ul>
+<li><code>%kql azureDataExplorer://code;cluster='help';database='Samples' -try_azcli_login</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New SSO Authentication Feature: -try_azcli_login_subscription option</h3>
+<ul>
+<li>Before authenticating with the specified connection string, will try first to get token from Azure CLI using the subscription as a parameter to get the right token.<ul>
+<li>if socket not found use the connection string to authenticate</li>
+<li>for example:<ul>
+<li><code>%kql azureDataExplorer://code;cluster='help';database='Samples' -try_azcli_login_subscription='49998620-4d47-4ab8-88d1-d92ea58902e9'</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New Feature -plotly_layout option</h3>
+<ul>
+<li>enables to specify plotly layout properties, when set they override the defualt layout properties (see plotly documentation on the layout properties)</li>
+<li>Abbreviation: 'pl'</li>
+<li>for example:<ul>
+<li><code>%kql -pl={"width":900"} ...your-query...</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New Feature -dynamic_to_dataframe option</h3>
+<ul>
+<li>controls to what dataframe type should an kql dynamic value be translated. </li>
+<li>Either 'object' or 'str'</li>
+<li>for example:<ul>
+<li><code>%kql --config 'dynamic_to_dataframe=str'</code></li>
+<li><code>%kql -dynamic_to_dataframe='str' ...your-query...</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New Feature -temp_folder_location option</h3>
+<ul>
+<li>Set the location of the temp_folder, either within starting working directory or user workspace directory.</li>
+<li>value values are: ["auto", "starting_dir", "user_dir"]<ul>
+<li>starting_dir - is the location from where jupyter was launched</li>
+<li>user_dir - is  user's home location</li>
+</ul>
+</li>
+<li>if set to 'auto' (default), location will be based on the notebook application</li>
+<li>for example:<ul>
+<li><code>%env KQLMAGIC_CONFIGURATION='temp_folder_location=starting_dir'</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>Enhancements</h3>
+<ul>
+<li>support ymin and ymax KQL render operator attributes</li>
+<li>added to table_package: "auto" and "pandas_html_table_schema"<ul>
+<li>when set to 'auto' (default) table package will be based on the notebook application</li>
+<li>'pandas_html_table_schema' is an interactive object supported by only some by some to the applications (i.e nteract, azure data studio) (see pandas documentation)</li>
+</ul>
+</li>
+<li>added title to all popup windows</li>
+</ul>
+</li>
+<li>
+<h3>Improvements</h3>
+<ul>
+<li>Auto detection of Azure Data Studio, nteract and Azure Notebooks</li>
+<li>Auto detect local/remote kernel location</li>
+<li>local files server for Azure Data Studion, Visual Studio Code and nteract</li>
+<li>logs</li>
+<li>error messages</li>
+</ul>
+</li>
+<li>
+<h3>Fix</h3>
+<ul>
+<li>open 'what's new' popup window in Azure Data Studio, Visual Studio Code and nteract</li>
+<li>deep linking to Kusto.Explorer and Kusto.Webexplorer in Azure Data Studio, Visual Studio Code and nteract</li>
+<li>popwindow for Visual Studio Code</li>
+<li>create temporary file in folder that user have permission to access</li>
+<li>close zombie popup windows</li>
+<li>option parsing of type dict</li>
+<li>option parsing accept None value</li>
+<li>display of dynamic column by pandas when using pandas_show_schema mode</li>
+<li>surpress pandas warnings</li>
+<li>'out of bounds nanoseconds timestamp' converting datetime to pandas dataframe</li>
+<li>'can't subtract offset-naive and offset-aware datetimes' converting datetime to pandas dataframe</li>
+<li>decimal type convertion to python</li>
+<li>set query properties using the '+' prefix</li>
+<li>json serialization of bytes, decimal, datetime and timedelta</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.111</h2>
+<ul>
+<li>
+<h3>New Jupyter front end supported</h3>
+<ul>
+<li>Kqlmagic can be now used within desktop <strong>"nteract"</strong></li>
+</ul>
+</li>
+<li>
+<h3>New Feature --banner command</h3>
+<ul>
+<li><strong>--banner</strong> command</li>
+<li>displays the Kqlmagic banner. Useful when Kqlmagic is loaded in silent mode, or is preloaded or when Kqlmagic is used just as a module.</li>
+<li><code>%kql -did ...</code> # display the table or rendered chart linked to a display id</li>
+</ul>
+</li>
+<li>
+<h3>Improvements</h3>
+<ul>
+<li>Hide temporary files server if used</li>
+<li>Pospone lauch of temporary files server till first kql command (support kqlmagic pre load)</li>
+</ul>
+</li>
+<li>
+<h3>Fix</h3>
+<ul>
+<li>Enables multiple notebook in parallel share temp files (now use kernel_id)</li>
+<li>accurate detection of the jupypter application</li>
+<li>fixed deep linking to Kusto explorer</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.110</h2>
+<ul>
+<li>
+<h3>Fix</h3>
+<ul>
+<li>Remove debug print messages</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.109</h2>
+<ul>
+<li>
+<h3>New popup_interaction options</h3>
+<ul>
+<li>defines mechanism to be used for popup interaction.</li>
+<li>The valid options are "auto", "button", "reference", "webbrowser_open_at_kernel", "reference_popup"</li>
+<li>When default "auto" is set, Kqlmagic choose based on the Jupyter front end used.</li>
+</ul>
+</li>
+<li>
+<h3>New Jupyter front end supported</h3>
+<ul>
+<li>Kqlmagic can be now used in <strong>"azure data studio"</strong> and <strong>"visual studio code"</strong></li>
+<li>Kqlmagic autodetect that it is running within Azure Data Studio</li>
+<li>Kqlmagic will be pre installed in future Azure Data Studio version</li>
+<li>Kqlmagic will be pre loaded in future Azure Data Studio version (no need to %reload_ext)</li>
+</ul>
+</li>
+<li>
+<h3>New plot package supported</h3>
+<ul>
+<li><strong>"plotly_widget"</strong> was added to <strong>plot_package</strong> option (default <strong>"plotly"</strong>):</li>
+<li>Generates the plot as widget image (useful to customize chart after plotted)</li>
+<li><code>_kql_raw_result_.plotly_fig</code> contains the rendered widget</li>
+<li>all aspects of the plotted chart can be modified by modifying the plotly widget properties</li>
+<li>plotly plot_package will be used instead of plotly_widget in case ipywidgets module is not found</li>
+<li><code>%config Kqlmagic.plot_package=plotly_widget</code> # sets the default plotly_package to plotly_widget</li>
+<li><code>%kql -pp 'plotly_widget' ...</code> # sets plotly_package to plotly_widget for thsi query</li>
+</ul>
+</li>
+<li>
+<h3>New feature - Kqlmagic can be used as a Module</h3>
+<ul>
+<li>Kqlmagic can be now used as a python Module (useful in environments that don't allow custom magics)</li>
+<li><code>from Kqlmagic import kql   # import the kql function
+    kql({kqlmagic line/cell text}) # execute the text as %kql / %% kql</code></li>
+<li>the kql signature is: kql(text:str='', options:dict=None, query_properties:dict=None, vars:dict=None, conn:str=None, global_ns=None, local_ns=None)<ul>
+<li>options will override options parsed from text</li>
+<li>query_properties will override query_properties parsed from text</li>
+<li>conn will override default current connection or connection string parsed from text</li>
+<li>vars will override python variables used to parametrized the query</li>
+<li>global_ns and local_ns will override user namespace as derived from shell (not recommended, rare use)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New feature - support Jupyter display_id</h3>
+<ul>
+<li>When display_id is set to True, refresh will override the original chart</li>
+<li><code>%kql -did ...</code> # display the table or rendered chart linked to a display id</li>
+<li><code>_kql_raw_result_.refresh() # will override the original chart</code></li>
+</ul>
+</li>
+<li>
+<h3>New feature - refresh and submit functions support override_options, override_query_properties, override_vars and override_connection</h3>
+<ul>
+<li><code>_kql_raw_result_.refresh(override_options=options_dict)</code>  # will refresh the original query, using original options overriden by the override options.</li>
+<li><code>_kql_raw_result_.refresh(override_query_properties=query_properties_dict)</code>      # will refresh the original query, using original query properties overriden by the override query properties.</li>
+<li><code>_kql_raw_result_.refresh(override_vars=vars_dict)</code>      # will refresh the original parametrised query, using python vars overriden by the override vars.</li>
+<li><code>_kql_raw_result_.refresh(override_connection=conn_str)</code>       # will refresh the original query, but to database as specified in the override connection string.</li>
+</ul>
+</li>
+<li>
+<h3>Fix</h3>
+<ul>
+<li>Fix parameterizer to better handle strings and to also handle pandas Series as a list</li>
+<li>Use repr in parameterizer to safely quote string</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.108</h2>
+<ul>
+<li>
+<h3>New help information</h3>
+<ul>
+<li>help on how to enable logging. try <code>%kql --help "logging"</code></li>
+</ul>
+</li>
+<li>
+<h3>Fix</h3>
+<ul>
+<li>Fixed KQLMAGIC_CONNECTION_STR missing options bug</li>
+<li>Fixed missing Orca bug</li>
+<li>Fixed deep linking bug</li>
+<li>Fixed faq display bug</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.107</h2>
+<ul>
+<li>
+<h3>New feature - request headers tagging</h3>
+<ul>
+<li>Enables to tag <strong>x-ms-app</strong>, <strong>x-ms-user</strong> and <strong>x-ms-client-request-id</strong> request headers with a custom string.</li>
+<li>To get more information execute: <code>%kql --help 'request-tags'</code></li>
+</ul>
+</li>
+<li>
+<h3>New help information</h3>
+<ul>
+<li>help on how to tag request headers. try <code>%kql --help "request-tags"</code></li>
+<li>Started a FAQ page. try %kql --faq</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.106</h2>
+<ul>
+<li>
+<h3>New support for Azure Data Explorer Client Request Properties</h3>
+<ul>
+<li>Many client request properties can be set using the set operator, as part of the query.
+However, some properties can be set only in the request.</li>
+<li>To set client request properties in the request, use the same syntax as kqlmagic options, but instead of using the '-' prefix use the '+' as prefix.</li>
+<li>example: <code>%kql +servertimeout='30m' {your-query}</code></li>
+<li>
+<p>Client request properties can also be set by using the query_properties option. It should be set as a dictionary with the properties values.</p>
+</li>
+<li>
+<p>to see the full list of the client request properties try <code>%kql --help "client-request-properties"</code></p>
+</li>
+</ul>
+</li>
+<li>
+<h3>New help information</h3>
+<ul>
+<li>help on how to use Kqlmagic behind proxies. try <code>%kql --help "proxies"</code></li>
+<li>help on how to use Client Request Properties, and properties list. try <code>%kql --help "client-request-properties"</code></li>
+<li>help on installing Kqlmagic. try <code>%kql --help "kqlmagic-install"</code></li>
+<li>help to quick access Kqlmagic source. opens Kqlmagic github. try <code>%kql --help "kqlmagic-github"</code></li>
+<li>help to quick access Kqlmagic readme. Opens Kqlmagic readme file. try <code>%kql --help "kqlmagic-readme"</code></li>
+<li>help to quick access Kqlmagic license. Opens Kqlmagic license file. try <code>%kql --help "kqlmagic-license"</code></li>
+<li>help to quick access Kqlmagic contributors list. Opens Kqlmagic contributors file. try <code>%kql --help "kqlmagic-contributors"</code></li>
+</ul>
+</li>
+<li>
+<h3>Fix</h3>
+<ul>
+<li>allow file names with spaces</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.105</h2>
+<ul>
+<li>
+<h3>New device_code login notification options</h3>
+<ul>
+<li>device_code login notification for device_code authentication.</li>
+<li>Notification can be sent to 'frontend', 'terminal', 'browser' and 'email'</li>
+<li>note: the 'browser' will open on the ipykernel server.</li>
+<li>
+<p>note: for email option to work, device_code_notification_email option have to be set too.</p>
+</li>
+<li>
+<p><strong>device_code_login_notification</strong> (default: <strong>"frontend"</strong>, Abbreviation: dcln)</p>
+<ul>
+<li>Specifies device_code login notification method</li>
+<li><strong>"frontend"</strong> - displays a message with device code, and a button that when clicked opens an authentication page in the frontend browser.</li>
+<li><strong>"terminal"</strong> - displays a message with device code and link to the authentication page.</li>
+<li><strong>"browser"</strong> - displays a message with device code, and open an authentication page in a webbrowse on the ipykernel host.</li>
+<li><strong>"email"</strong> - send an email with device code and link to the authencitaion page.</li>
+</ul>
+</li>
+<li>
+<p><strong>device_code_notification_email</strong> (default: <strong>''</strong>, Abbreviation: dcne)</p>
+<ul>
+<li>Email details string. initialized by environmental variable KQLMAGIC_DEVICE_CODE_NOTIFICATION_EMAIL.</li>
+<li>The email details string format: SMTPEndPoint='endpoint';SMTPPort='port';sendFrom='email';sendFromPassword='password';sendTo='email';context='text'</li>
+<li>note: context text is optional, is a free text that will be added to the email subject and email body.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New deep_link method in result object</h3>
+<ul>
+<li>deep_link method opens query link tool provided as a parameter or the default tool as set in query_link_destination option, and execute the query in the tool.</li>
+<li>note: see <strong>show_query_link</strong> and <strong>query_link_destination</strong> options</li>
+<li>note: supported only for Azure Data Explorer queries, will be ignored for Application Insights or Log Analytics queries</li>
+<li>for example:</li>
+</ul>
+<p><code>_kql_raw_result_.deep_link()</code> # will launch the default deep link tool and execute the query in the tool.</p>
+<p><code>_kql_raw_result_.deep_link("Kusto.WebExplorer")</code> # will launch Kusto.WebExplorer and execute the query in Kusto.WebExplorer.</p>
+<p><code>_kql_raw_result_.deep_link("Kusto.Explorer")</code> # will launch Kusto.Explorer and execute the query in Kusto.Explorer.</p>
+</li>
+<li>
+<h3>query errors displayed in pretty json</h3>
+<ul>
+<li>Show query errors in pretty json for better read.</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.104</h2>
+<ul>
+<li>Fix import missing FernetCrypto</li>
+</ul>
+<h2>Version 0.1.103</h2>
+<ul>
+<li>
+<h3>New message appended to init banner</h3>
+<ul>
+<li>A what's new message with a 'what' new' button.</li>
+<li>When clicked a window is opened with all Kqlmagic release notes history.</li>
+</ul>
+</li>
+<li>
+<h3>New init options (on Kqlmagic load) that can be set by environment variable KQLMAGIC_CONFIGURATION</h3>
+<ul>
+<li><strong>check_magic_version</strong> (default <strong>True</strong>):</li>
+<li>
+<p>On Kqlmagic load, check whether new version of Kqlmagic exist, and add a notification message to init banner if a new version exist</p>
+</li>
+<li>
+<p><strong>show_what_new</strong> (default <strong>True</strong>):</p>
+</li>
+<li>
+<p>On Kqlmagic load, loads history file of Kqlmagic from repository, and adds a "what's new" button to open it in a window.</p>
+</li>
+<li>
+<p><strong>show_init_banner</strong> (default <strong>True</strong>):</p>
+</li>
+<li>On Kqlmagic load, show init banner</li>
+</ul>
+</li>
+<li>
+<h3>New query options</h3>
+<ul>
+<li><strong>show_query_link</strong> (default <strong>False</strong>, abbreviation sql):</li>
+<li>
+<p>Add query deep link button after query result, clicking the button will open the tool (see query_link_destination option) and execute the query in the tool.</p>
+<ul>
+<li>note: supported only for Azure Data Explorer queries, will be ignored for Application Insights or Log Analytics queries</li>
+</ul>
+</li>
+<li>
+<p><strong>query_link_destination</strong>  (default <strong>"Kusto.WebExplorer"</strong>, abbreviation qld):</p>
+</li>
+<li>Specifies the destination of the query link tool (see show_query_link option)<ul>
+<li>note: only two Azure Data Explorer tools are supported <strong>"Kusto.WebExplorer"</strong> and <strong>"Kusto.Explorer"</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>New plot package supported</h3>
+<ul>
+<li><strong>"plotly_orca"</strong> was added to <strong>plot_package</strong> option (default <strong>"plotly"</strong>):</li>
+<li>Generates the plot as png image (useful for static front ends)</li>
+<li>
+<p>note: requires plotly orca to be installed in the backend server.</p>
+</li>
+<li>
+<p><strong>"None"</strong> was added to <strong>plot_package</strong> option (default <strong>"plotly"</strong>):</p>
+</li>
+<li>disable plot, table is returned</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.102</h2>
+<ul>
+<li>
+<h3>New query options</h3>
+<ul>
+<li>
+<p><strong>show_query</strong> (default False, abbreviation sq):</p>
+</li>
+<li>
+<p>Add parametrized query message before query results.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2>Version 0.1.101</h2>
+<ul>
+<li>
+<h3>support Souvereign Clouds</h3>
+<ul>
+<li>Supports <strong>"public"</strong>, <strong>"mooncake"</strong>, <strong>"fairfax"</strong>, <strong>"blackforest"</strong>, <strong>"usnat"</strong>, <strong>"ussec"</strong>, <strong>"test"</strong> clouds.</li>
+</ul>
+</li>
+<li>
+<h3>New query options</h3>
+<ul>
+<li><strong>cloud</strong>  (default <strong>"public"</strong>, other: [ <strong>"public"</strong>, <strong>"mooncake"</strong>, <strong>"fairfax"</strong>, <strong>"blackforest"</strong>, <strong>"usnat"</strong>, <strong>"ussec"</strong>, <strong>"test"</strong>]):</li>
+<li>
+<p>Specifies the cloud to be used when a new connection is created</p>
+</li>
+<li>
+<p><strong>data-source-url</strong></p>
+</li>
+<li>
+<p>Override the cloud default data source url</p>
+</li>
+<li>
+<p><strong>aad-url</strong></p>
+</li>
+<li>Override the cloud default aad login url<ul>
+<li>note: only two Azure Data Explorer tools are supported <strong>"Kusto.WebExplorer"</strong> and <strong>"Kusto.Explorer"</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<h3>Connection string enhanced</h3>
+<ul>
+<li><strong>clientId</strong></li>
+<li>Client id can be specified in all connection string variation to override the default clientId</li>
+</ul>
+</li>
+</ul>
+<h2>Version &lt;= 0.1.100</h2>
+<ul>
+<li>Fixed nbsp; bug + allow multiple options in connection string Aug 12, 2019</li>
+<li>Adding support to plotly version 4 Jul 21, 2019</li>
+<li>Adding another test Jul 21, 2019</li>
+<li>Changed testing framework from nose to pytest Jun 3, 2019</li>
+<li>Update setup module versions Jun 3, 2019</li>
+<li>Version 0.96 - added queryproperties option and "+" specific query properties for Kusto queries (supports all set customers properties) </li>
+<li>fix query caching  to support non standard database names; support separate logging; log Kqlmagic steps; log requests; log adal request; add env KQLMAGIC [-LOG_LEVEL, _LOG_FILE, _LOG_FILE_PREFIX, _LOG_FILE_MODE]; add experimental sso, to enable KQLMAGIC_ENABLE_SSO=TRUE; fix parametrized dataframe types long and real; - 0.1.95 - Apr 06, 2019</li>
+<li>fix http://kusto.aria.microsoft.com and other not standard cluster name </li>
+<li>fix missing lxml.py module dependency in setup.py; created history.rst file; updated setup.py based on azure notebooks image - 0.1.93 - Mar 24, 2019</li>
+<li>support database names with whitespaces; support ADX proxy over AI/LA cluster names; fix charts based on firest quantity column - 0.1.92 - Mar 18, 2019</li>
+<li>allow v1 response from kusto api v2, support adx-proxy, - 0.1.91 - Feb 20, 2019</li>
+<li>fix to_dataframe bool - 0.1.90 - Jan 25, 2019</li>
+<li>update binder requirements to 0.1.88 - Jan 16, 2019</li>
+<li>version 01.88, added --schema command - 0.1.88 - Jan 16, 2019</li>
+<li>added test_notebook_app for testing, , commands instead of show_window return html object result. - 0.1.87 - Dec 25, 2018</li>
+<li>added run_upgrade.bat; enhanced run_tests.bat - Dec 24, 2018</li>
+<li>fixed run_tests.bat - fixed run_tests.bat - Dec 20, 2018</li>
+<li>update binder requirements - update binder requirements - Dec 20, 2018</li>
+<li>Adjusted to support VisualStudioCode (Jupyter) notebook - 0.1.86 - Dec 18, 2018</li>
+<li>added support to "ipython" notebook_app, started a tests suits - 0.1.85 - Dec 17, 2018</li>
+<li>update binder requirements to 0.1.84 - Dec 16, 2018</li>
+<li>Fix dynamic columns that are not strict json - 0.1.84 - Dec 11, 2018</li>
+<li>Align to Kusto new V2 dynamic field response; fix kql.submit() - 0.1.83 - Dec 10, 2018</li>
+<li>binder to use 0.1.82 - Dec 9, 2018</li>
+<li>added binder folder, with requirements - Dec 9, 2018</li>
+<li>fixed env KQLMAGIC_CONNECTION_STR - 0.1.82 - Dec 6, 2018</li>
+<li>update notebooks with anonymous authentication - Dec 3, 2018</li>
+<li>removed tell_format; added anonymous authentication (for the case of local data source) - 0.1.81 - Dec 3, 2018</li>
+<li>Removed dependency on azure.kusto sdk, use rest api to kusto. - 0.1.80 - Nov 13, 2018</li>
+<li>changed cache management via commands, modified caches to be named, added option -save_to folder,; support datetime as linear value in charts, support kql render attributes; support fully qualified cluster; prepare to remove kusto sdk - 0.1.79 - Nov 13, 2018</li>
+<li>support query option -timout / -wait / -to in seconds - 0.1.78 - Nov 8, 2018</li>
+<li>fix popup for clusters or databases with special characters, fix .ingest online, version - 0.1.77 - Nov 8, 2018</li>
+<li>restrict Kqlmagic to python &gt;= 3.6 - 0.1.76 - Nov 8, 2018</li>
+<li>support command --help without params - 0.1.75 - Nov 7, 2018</li>
+<li>version 0.1.74 - 0.1.74 - Nov 7, 2018</li>
+<li>support .show database DB schema as json - Nov 7, 2018</li>
+<li>fix parametrization of df column of type object but is actually bytes 0.1.73 - 0.1.73 - Nov 5, 2018</li>
+<li>fixed parametrizaton to .set management queries, fixed javascript error when old out cell displays - 0.1.72 - Nov 5, 2018</li>
+<li>prepare support all visualization properties - 0.1.71 - Nov 3, 2018</li>
+<li>minor changes in readme and help - Oct 31, 2018</li>
+<li>support pandas dataframe as parameter, add support null values in conversion to dataframes, fixed pretty print of dynamic cols; improved parametrization. - 0.1.70 - Oct 31, 2018</li>
+<li>make keys as caseinsensitive, ignore underscore and hyphen-minus, covert some options to commands, modify kusto kql logo, and remove kusto name. 0.1.69 - 0.1.69 - Oct 29, 2018</li>
+<li>fix clors notebook - Oct 25, 2018</li>
+<li>popup_window option to all commands, fixed banner, update notebooks, 0.1.68 - 0.1.68 - Oct 25, 2018</li>
+<li>update notebooks with --version,; allow =setting in options, more quotes flexibility with values, support option dict type; - 0.1.67 - Oct 25, 2018</li>
+<li>support partial result, add command concept, added commands, 0.1.66 - 0.1.66 - Oct 25, 2018</li>
+<li>options and connection key values can be parametyrize from python and env variables, new -query and -conn option - 0.1.65 - Oct 23, 2018</li>
+<li>parametrized options, add file://folder, update color notebook, 0.1.64 - 0.1.64 - Oct 22, 2018</li>
+<li>fix notebooks - Oct 22, 2018</li>
+<li>run black on code, version 0.1.63 - 0.1.63 - Oct 22, 2018</li>
+<li>bug fix, code refactor, version 0.1.62 - 0.1.62 - Oct 21, 2018</li>
+<li>moved the saved_as earlier in the pipe, to capture raw results even if there is an error later. version 0.1.61 - 0.1.61 - Oct 20, 2018</li>
+<li>fix to pandas convertion, for the case of missing int64 or missing bool, version 0.1.60 - 0.1.60 - Oct 18, 2018</li>
+<li>update notebooks, added support to certificate pem_file, version 0.1.59 - 0.1.59 - Oct 18, 2018</li>
+<li>restructure local files - Oct 18, 2018</li>
+<li>Update notebooks, created QuikStart fro log analytics notebook, updated README, version 0.1.58 - 0.1.58 - Oct 18, 2018</li>
+<li>update notebooks - Oct 18, 2018</li>
+<li>update notebooks - Oct 18, 2018</li>
+<li>update notebooks with new connection string format - Oct 18, 2018</li>
+<li>Fixed setup.py long description to show properly work on PyPI - 0.1.57 -  Oct 17, 2018</li>
+<li>removed setup dwonload_url - Oct 17, 2018</li>
+<li>update setup description and README titles - Oct 17, 2018</li>
+<li>update README - Oct 17, 2018</li>
+<li>update README - Oct 17, 2018</li>
+<li>update README - Oct 17, 2018</li>
+<li>updated README, and setup - 0.1.56 - Oct 17, 2018</li>
+<li>fix setup.py - fix setup.py</li>
+<li>removed version restriction on traitlets - 0.1.55 - Oct 17, 2018</li>
+<li>removed psutil version restriction in setup - 0.1.54 - Oct 17, 2018</li>
+<li>fixed pallette notebook; adjuset to azure-kusto-data version 0.0.15 changes (tenant is a must parameter, for clienid) - 0.1.53 - Oct 16, 2018</li>
+<li>Fixed development status, updated setup, version 0.1.52 - 0.1.52 - Oct 16, 2018</li>
+<li>changes state from 1-alpha to 3-beta; published in PyPI; modified notebooks to reflect the changes; changed structure of files. Version 0.1.50 - 0.1.50 -  Oct 16, 2018</li>
+<li>support alt schema names; simplify code; improve connection inheritance; ; added warning to upgrade version with PyPI; added alias to connection string; added alias_magics 'adxql'; - 0.1.47 - Oct 15, 2018</li>
+<li>removed order restriction on connection string, simplified and unified connections string code parsing, improved error presentation, added friendly_ to connection string (for case id is a uuid) - 0.1.46 - Oct 10, 2018</li>
+<li>AAD Authentication Code() and Clientid/Clientsecret, added to ApplicationInsights and Loganalytics - 0.1.45 - Oct 9, 2018</li>
+<li>add aad auth support for lognalytics and applicationinsights; simplified code - 0.1.44 - Oct 8, 2018</li>
+<li>support getting generic database schema from all engines - 0.1.43 - Oct 7, 2018</li>
+<li>fixed fork charts, adjusted to work on Jupyter Lab - 0.1.42 - Oct 7, 2018</li>
+<li>fixed linechart and timechart multidimetional and not sorted, and not ordered, 0.1.41 - 0.1.41 - Oct 4, 2018</li>
+<li>bump version 0.1.40</li>
+<li>bump 0.1.39</li>
+<li>fix results.py -  Oct 3, 2018</li>
+<li>bump version 0.1.38</li>
+<li>patch to support plotly in Azure notebook, till it will support plotly MIME - Oct 3, 2018</li>
+<li>comment local usage - Oct 3, 2018</li>
+<li>add ParametrizeYourQuery notebook - Oct 3, 2018</li>
+<li>added parametrization feature, added saved_as option, added params_dict option, fixed options validation, added parametrized_query attribute to results object, updated setup.py - 0.1.37 - Sep 30, 2018</li>
+<li>simplified code, fixed cahing schema - 0.1.36 - Sep 24, 2018</li>
+<li>Fixed timespan - 0.1.35 - Sep 23, 2018</li>
+<li>fixed ref to github - Sep 20, 2018</li>
+<li>Added copyright file header to all files, version 0.1.34 - 0.1.34 - Sep 20, 2018</li>
+<li>fix notebooks - 0.1.33 - Sep 19, 2018</li>
+<li>fix setup.py - 0.1.32 - Sep 19, 2018</li>
+<li>bump version - 0.1.31 - Sep 19, 2018</li>
+</ul>
+        </body>
+        </html>
+        
