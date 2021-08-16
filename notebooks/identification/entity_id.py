@@ -602,3 +602,36 @@ class EntityIdentifier:
                 print("-" * len(query))
                 display(query_result)
 
+
+    def generate_table_queries(self, entity_type: str, search_value: str, query_template=QUERY_TEMP):
+        queries = {}
+        for entity, pair in self.entity_map.items():
+            if entity == entity_type:
+                for table, col in pair:
+                    if table not in queries:
+                        query = query_template.format(table=table, ColumnName=col)
+                        queries[table] = query.format(MySearch=search_value)
+                    else:
+                        query = queries[table] + 'or ' + col + ' == "{MySearch}"\n'
+                        queries[table] = query.format(MySearch=search_value)
+        return queries
+
+    def generate_union_query(self, queries, cols):
+        qry_list = list(queries.values())
+        fin_query = """(union isfuzzy= true
+"""
+        for query in qry_list:
+            
+            t = "({query})"
+            if query != qry_list[-1]:
+                t = t + ',\n'
+            fin_query = fin_query + t.format(query=query)
+        end = """)
+| project """
+        fin_query = fin_query + end
+        for col in cols:
+            fin_query = fin_query + col
+            if col != cols[-1]:
+                fin_query = fin_query + ', '
+        
+        return fin_query
