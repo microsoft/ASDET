@@ -7,6 +7,7 @@ import pprint
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.graph_objects as go
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -439,7 +440,8 @@ class EntityIdentifier:
         Parameters
         ----------
         tables : List[str]
-            Array of tables in string format to iterate over
+            Array of tables in string format to iterate over. 
+            If no tables are explictly passed in as a parameter, the tables selected in select_tables() function are used.
         sample_size : str, optional
             Number of events/rows in each table to sample, by default "100"
 
@@ -539,6 +541,53 @@ class EntityIdentifier:
         entity_count_ser = pd.Series(entity_counts)
         entity_count_ser.sort_values(ascending=False).plot.barh(figsize=(10,10))
 
+    
+    def show_sankey(self):
+        # get parameter lists
+        entity_list = list(self.entity_map.keys())
+        num_entities = len(entity_list)
+        table_list = self.selected_tables.selected_items
+        entity_list.extend(table_list)
+
+        source_list, target_list, value_list, i = [], [], [], 0
+        for entity, pair in self.entity_map.items():
+            for table, col in pair:
+                source_list.append(i)
+                target_list.append(table_list.index(table)+num_entities)
+                value_list.append(1)
+            i += 1
+
+        source_target_list = tuple(zip(source_list, target_list))
+
+        dic = {}
+        for pair in source_target_list:
+            if pair not in dic.keys():
+                dic[pair] = 1
+            else:
+                dic[pair] = dic[pair] + 1
+
+        source_list = [key[0] for key in dic.keys()]
+        target_list = [key[1] for key in dic.keys()]
+        value_list = [key for key in dic.values()]
+
+        # graph
+        fig = go.Figure(data=[go.Sankey(
+            node = dict(
+            pad = 15,
+            thickness = 20,
+            line = dict(color = "black", width = 0.5),
+            label = entity_list,
+            color = "blue"
+            ),
+            link = dict(
+            source = source_list,
+            target = target_list,
+            value = value_list
+        ))])
+
+        fig.update_layout(title_text="Entity to Table Sankey Diagram", font_size=10)
+        fig.show()
+
 
     # Printing methods
 
@@ -588,12 +637,12 @@ class EntityIdentifier:
         return queries
 
 
-    def run_queries(self, queries):
+    def run_queries(self, queries: List[str]):
         """
         Runs the queries.
 
         Args:
-            queries (List)): Output of generate_query function.
+            queries (List[str])): Output of generate_query function.
         """
         for query in queries:
             query_result = self.qry_prov.exec_query(query)
