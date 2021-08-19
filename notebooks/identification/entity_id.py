@@ -205,7 +205,7 @@ class EntityIdentifier:
         # Dict structure is {table: {column: {regex: (non-blank-matches, all-matches)}}}
         self._regex_matches: Dict[str, Dict[str, Dict[str, Tuple(float, float)]]]
         # object attribute to interpreted results
-        self.table_entities: Dict[str, Dict[str, str]]
+        self.table_map: Dict[str, Dict[str, str]]
         # reverse mapping from entities to table/column
         self.entity_map: Dict[str, List[Tuple(str, str)]]
         self.qry_prov = qry_prov
@@ -217,7 +217,7 @@ class EntityIdentifier:
 
     def save_results(self, path: str = "./results.json"):
         """
-        Save _regex_matches, table_entities, and entity_map to a JSON file.
+        Save _regex_matches, table_map, and entity_map to a JSON file.
 
         Parameters
         ----------
@@ -228,7 +228,7 @@ class EntityIdentifier:
             return
         results = {
             "regex_matches": self._regex_matches,
-            "table_entities": self.table_entities,
+            "table_map": self.table_map,
             "entity_map": self.entity_map
         }
         save_to_json_file(results, path)
@@ -246,7 +246,7 @@ class EntityIdentifier:
         results = read_json_file(path)
         if results:
             self._regex_matches = results["regex_matches"]
-            self.table_entities = results["table_entities"]
+            self.table_map = results["table_map"]
             self.entity_map = results["entity_map"]
 
 
@@ -405,13 +405,13 @@ class EntityIdentifier:
 
         return entity_assignments
 
-    def create_entity_map(self, table_entities):
+    def create_entity_map(self, table_map):
         """
         Iterates through the interpreted results to create a dict keyed by entity type.
 
         Parameters
         ----------
-        table_entities : Dict
+        table_map : Dict
             Output of interpret_matches function. Dict of column-entity mappings keyed by table and column.
             Dict structure is {table: {column: entity}}.
 
@@ -421,10 +421,10 @@ class EntityIdentifier:
             Dict structure is Dict: {entity: [(table, col)]}.
         """        
         entity_dict = {}
-        for table, cols in table_entities.items():
+        for table, cols in table_map.items():
             for col, entity in cols.items():
                 entity_dict[entity] = []
-        for table, cols in table_entities.items():
+        for table, cols in table_map.items():
             for col, entity in cols.items():
                 entity_dict[entity].append((table, col))
         return entity_dict
@@ -457,8 +457,8 @@ class EntityIdentifier:
             df = self.qry_prov.exec_query(f"{table} | sample {sample_size}")
             output_regexes[table] = self.search_single_table(df)
         self._regex_matches = output_regexes
-        self.table_entities = self.interpret_matches(self._regex_matches)
-        self.entity_map = self.create_entity_map(self.table_entities)
+        self.table_map = self.interpret_matches(self._regex_matches)
+        self.entity_map = self.create_entity_map(self.table_map)
         return self.entity_map
 
 
@@ -484,6 +484,31 @@ class EntityIdentifier:
         """
         # List of all tables
         self.detect_entities(self.qry_prov.schema.keys())
+
+
+    # HTML Tables
+
+    def show_entity_map_html(self):
+        """Return entity_map as HTML table."""
+        table_html = [
+            "<table><thead><tr><th>Entity</th><th>Table</th><th>Column</th></tr></thead><tbody>"
+        ]
+        for entity, pair in self.entity_map.items():
+            for table, col in pair:
+                table_html.append(f"<tr><td><b>{entity}</b></td><td><b>{table}</b></td><td><b>{col}</b></td><tr>")
+        header = "<h2>Entity map</h2>"
+        return HTML(f"{header} {''.join(table_html)}</tbody></table>")
+
+    def show_table_map_html(self):
+        """Return table_map as HTML table."""
+        table_html = [
+            "<table><thead><tr><th>Table</th><th>Column</th><th>Entity</th></tr></thead><tbody>"
+        ]
+        for table, cols in self.table_map.items():
+            for col, entity in cols.items():
+                table_html.append(f"<tr><td><b>{table}</b></td><td><b>{col}</b></td><td><b>{entity}</b></td><tr>")
+        header = "<h2>Table map</h2>"
+        return HTML(f"{header} {''.join(table_html)}</tbody></table>")
 
 
     # Visualizations
@@ -570,6 +595,23 @@ class EntityIdentifier:
         target_list = [key[1] for key in dic.keys()]
         value_list = [key for key in dic.values()]
 
+        # colors
+        color_list = [
+                    "rgba(31, 119, 180, 0.8)",
+                    "rgba(255, 127, 14, 0.8)",
+                    "rgba(44, 160, 44, 0.8)",
+                    "rgba(214, 39, 40, 0.8)",
+                    "rgba(148, 103, 189, 0.8)",
+                    "rgba(140, 86, 75, 0.8)",
+                    "rgba(227, 119, 194, 0.8)",
+                    "rgba(127, 127, 127, 0.8)",
+                    "blue",
+                    "blue",
+                    "blue",
+                    "blue"]
+
+        link_color_list = [color_list[source] for source in source_list]
+
         # graph
         fig = go.Figure(data=[go.Sankey(
             node = dict(
@@ -577,15 +619,16 @@ class EntityIdentifier:
             thickness = 20,
             line = dict(color = "black", width = 0.5),
             label = entity_list,
-            color = "blue"
+            color = color_list
             ),
             link = dict(
             source = source_list,
             target = target_list,
-            value = value_list
+            value = value_list,
+            color = link_color_list
         ))])
 
-        fig.update_layout(title_text="Entity to Table Sankey Diagram", font_size=10)
+        fig.update_layout(title_text="Entity to Data Source Sankey Diagram", font_size=10)
         fig.show()
 
 
@@ -606,8 +649,8 @@ class EntityIdentifier:
     def disp_regex_matches(self):
         self._print_dict(self._regex_matches)
 
-    def disp_table_entities(self):
-        self._print_dict(self.table_entities)
+    def disp_table_map(self):
+        self._print_dict(self.table_map)
 
     def disp_entity_map(self):
         self._print_dict(self.entity_map)
@@ -628,7 +671,7 @@ class EntityIdentifier:
             List: List of generated queries.
         """
         queries = []
-        for table, matches in self.table_entities.items():
+        for table, matches in self.table_map.items():
             for col, entity in matches.items():
                 if entity_type == entity:
                     # print("found match", table, col, entity)
@@ -665,7 +708,7 @@ class EntityIdentifier:
                         queries[table] = query.format(MySearch=search_value)
         return queries
 
-    def generate_union_query(self, queries, cols):
+    def format_union_query(self, queries, cols):
         qry_list = list(queries.values())
         fin_query = """(union isfuzzy= true
 """
@@ -684,3 +727,8 @@ class EntityIdentifier:
                 fin_query = fin_query + ', '
         
         return fin_query
+
+    
+    def generate_union_query(self, entity_type: str, search_value: str, cols):
+        queries = self.generate_table_queries(entity_type, search_value)
+        return self.format_union_query(queries, cols)
