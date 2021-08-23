@@ -128,3 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /notebooks/kqlmagic/**
+**/kqlmagic/t**
+
+# Additional Files
+.virtual_documents/
+kqlmagic/
