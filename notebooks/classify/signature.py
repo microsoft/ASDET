@@ -221,7 +221,7 @@ class DataSignature:
         self.featureMap = featureMap
 
     def findUniques(self, threshold: int = 1):
-        """[Function for finding unique values for a signature]
+        """[Function for finding unique values for a signature. featureValueCounts stores the number of times a value shows up in other signatures. i.e. if the item is ('status', 3): 5, the vlaue status code of 3 shows up in 5 other signatures]
 
         Args:
             threshold (int, optional): [Value that defines the threshold for what a unique value within a column should be]. Defaults to 1.
@@ -247,48 +247,3 @@ class DataSignature:
             uniques[signature] = uniqueFeatures
         self.uniqueFeatures = uniques
         self.featureValueCounts = featureValueCounts
-
-    # Function that displays the unique value for a given signature
-    # Parameters:
-    #   signatureDict: a dictionary that contains unique values for each signature
-    #   counts: dictionary that displays counts of values within each signature
-    #   signature: signature string to analyze
-
-    # def displayUniques(self, signatureDict, counts, signature):
-    #     print(f"Unique value for the signature {signature} are as follows")
-    #     for feature in signatureDict[signature]:
-    #         key = (list(feature.keys())[0], feature[list(feature.keys())[0]])
-    #         if counts[key] == 1:
-    #             print(key, 'is unique through the entire table')
-    #         else:
-    #             print(key)
-
-    def displaySignatures(self):
-        # The multiselect element allows the user to choose which features should be present
-        # i.e. if we want to look at the data which only have tenantid and clientip we would select those
-        multiSelect = widgets.SelectMultiple(
-            options=sorted(list(self.cleanedData)),
-            description='Present Features',
-            disabled=False
-        )
-        display(multiSelect)
-
-        # Check if the selected values are a valid combination
-        if tuple(sorted(multiSelect.value)) not in self.featureMap:
-            print("Data signature with those values were not found.")
-        else:
-            dataSignature = self.featureMap[sorted(multiSelect.value)]
-            
-            porportion = self.signatureDict[dataSignature]['count'] / self.cleanedData.shape[0]
-            print(f'% of samples that have this signature: {porportion}%')
-            features = self.signatureDict[dataSignature]['featureDict']
-
-            # The dropdown element allows the user to select which feature to visualize
-            # i.e. if we have a signature, and we want to see the distribution of different clientIP's within that signature
-            # the dropdown allows us to select which value to visualize
-            dropdown = widgets.Dropdown(
-                options=sorted(list(features.keys())),
-                description='Value:',
-            )
-            display(dropdown)
-            plt.bar(features[dropdown.value].keys(), features[dropdown.value].values(), 1, color='g')

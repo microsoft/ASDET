@@ -7,6 +7,7 @@ import pprint
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.graph_objects as go
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -204,7 +205,7 @@ class EntityIdentifier:
         # Dict structure is {table: {column: {regex: (non-blank-matches, all-matches)}}}
         self._regex_matches: Dict[str, Dict[str, Dict[str, Tuple(float, float)]]]
         # object attribute to interpreted results
-        self.table_entities: Dict[str, Dict[str, str]]
+        self.table_map: Dict[str, Dict[str, str]]
         # reverse mapping from entities to table/column
         self.entity_map: Dict[str, List[Tuple(str, str)]]
         self.qry_prov = qry_prov
@@ -216,7 +217,7 @@ class EntityIdentifier:
 
     def save_results(self, path: str = "./results.json"):
         """
-        Save _regex_matches, table_entities, and entity_map to a JSON file.
+        Save _regex_matches, table_map, and entity_map to a JSON file.
 
         Parameters
         ----------
@@ -227,7 +228,7 @@ class EntityIdentifier:
             return
         results = {
             "regex_matches": self._regex_matches,
-            "table_entities": self.table_entities,
+            "table_map": self.table_map,
             "entity_map": self.entity_map
         }
         save_to_json_file(results, path)
@@ -245,7 +246,7 @@ class EntityIdentifier:
         results = read_json_file(path)
         if results:
             self._regex_matches = results["regex_matches"]
-            self.table_entities = results["table_entities"]
+            self.table_map = results["table_map"]
             self.entity_map = results["entity_map"]
 
 
@@ -404,13 +405,13 @@ class EntityIdentifier:
 
         return entity_assignments
 
-    def create_entity_map(self, table_entities):
+    def create_entity_map(self, table_map):
         """
         Iterates through the interpreted results to create a dict keyed by entity type.
 
         Parameters
         ----------
-        table_entities : Dict
+        table_map : Dict
             Output of interpret_matches function. Dict of column-entity mappings keyed by table and column.
             Dict structure is {table: {column: entity}}.
 
@@ -420,10 +421,10 @@ class EntityIdentifier:
             Dict structure is Dict: {entity: [(table, col)]}.
         """        
         entity_dict = {}
-        for table, cols in table_entities.items():
+        for table, cols in table_map.items():
             for col, entity in cols.items():
                 entity_dict[entity] = []
-        for table, cols in table_entities.items():
+        for table, cols in table_map.items():
             for col, entity in cols.items():
                 entity_dict[entity].append((table, col))
         return entity_dict
@@ -439,7 +440,8 @@ class EntityIdentifier:
         Parameters
         ----------
         tables : List[str]
-            Array of tables in string format to iterate over
+            Array of tables in string format to iterate over. 
+            If no tables are explictly passed in as a parameter, the tables selected in select_tables() function are used.
         sample_size : str, optional
             Number of events/rows in each table to sample, by default "100"
 
@@ -455,8 +457,8 @@ class EntityIdentifier:
             df = self.qry_prov.exec_query(f"{table} | sample {sample_size}")
             output_regexes[table] = self.search_single_table(df)
         self._regex_matches = output_regexes
-        self.table_entities = self.interpret_matches(self._regex_matches)
-        self.entity_map = self.create_entity_map(self.table_entities)
+        self.table_map = self.interpret_matches(self._regex_matches)
+        self.entity_map = self.create_entity_map(self.table_map)
         return self.entity_map
 
 
@@ -482,6 +484,31 @@ class EntityIdentifier:
         """
         # List of all tables
         self.detect_entities(self.qry_prov.schema.keys())
+
+
+    # HTML Tables
+
+    def show_entity_map_html(self):
+        """Return entity_map as HTML table."""
+        table_html = [
+            "<table><thead><tr><th>Entity</th><th>Table</th><th>Column</th></tr></thead><tbody>"
+        ]
+        for entity, pair in self.entity_map.items():
+            for table, col in pair:
+                table_html.append(f"<tr><td><b>{entity}</b></td><td><b>{table}</b></td><td><b>{col}</b></td><tr>")
+        header = "<h2>Entity map</h2>"
+        return HTML(f"{header} {''.join(table_html)}</tbody></table>")
+
+    def show_table_map_html(self):
+        """Return table_map as HTML table."""
+        table_html = [
+            "<table><thead><tr><th>Table</th><th>Column</th><th>Entity</th></tr></thead><tbody>"
+        ]
+        for table, cols in self.table_map.items():
+            for col, entity in cols.items():
+                table_html.append(f"<tr><td><b>{table}</b></td><td><b>{col}</b></td><td><b>{entity}</b></td><tr>")
+        header = "<h2>Table map</h2>"
+        return HTML(f"{header} {''.join(table_html)}</tbody></table>")
 
 
     # Visualizations
@@ -539,6 +566,71 @@ class EntityIdentifier:
         entity_count_ser = pd.Series(entity_counts)
         entity_count_ser.sort_values(ascending=False).plot.barh(figsize=(10,10))
 
+    
+    def show_sankey(self):
+        # get parameter lists
+        entity_list = list(self.entity_map.keys())
+        num_entities = len(entity_list)
+        table_list = self.selected_tables.selected_items
+        entity_list.extend(table_list)
+
+        source_list, target_list, value_list, i = [], [], [], 0
+        for entity, pair in self.entity_map.items():
+            for table, col in pair:
+                source_list.append(i)
+                target_list.append(table_list.index(table)+num_entities)
+                value_list.append(1)
+            i += 1
+
+        source_target_list = tuple(zip(source_list, target_list))
+
+        dic = {}
+        for pair in source_target_list:
+            if pair not in dic.keys():
+                dic[pair] = 1
+            else:
+                dic[pair] = dic[pair] + 1
+
+        source_list = [key[0] for key in dic.keys()]
+        target_list = [key[1] for key in dic.keys()]
+        value_list = [key for key in dic.values()]
+
+        # colors
+        color_list = [
+                    "rgba(31, 119, 180, 0.8)",
+                    "rgba(255, 127, 14, 0.8)",
+                    "rgba(44, 160, 44, 0.8)",
+                    "rgba(214, 39, 40, 0.8)",
+                    "rgba(148, 103, 189, 0.8)",
+                    "rgba(140, 86, 75, 0.8)",
+                    "rgba(227, 119, 194, 0.8)",
+                    "rgba(127, 127, 127, 0.8)",
+                    "blue",
+                    "blue",
+                    "blue",
+                    "blue"]
+
+        link_color_list = [color_list[source] for source in source_list]
+
+        # graph
+        fig = go.Figure(data=[go.Sankey(
+            node = dict(
+            pad = 15,
+            thickness = 20,
+            line = dict(color = "black", width = 0.5),
+            label = entity_list,
+            color = color_list
+            ),
+            link = dict(
+            source = source_list,
+            target = target_list,
+            value = value_list,
+            color = link_color_list
+        ))])
+
+        fig.update_layout(title_text="Entity to Data Source Sankey Diagram", font_size=10)
+        fig.show()
+
 
     # Printing methods
 
@@ -557,8 +649,8 @@ class EntityIdentifier:
     def disp_regex_matches(self):
         self._print_dict(self._regex_matches)
 
-    def disp_table_entities(self):
-        self._print_dict(self.table_entities)
+    def disp_table_map(self):
+        self._print_dict(self.table_map)
 
     def disp_entity_map(self):
         self._print_dict(self.entity_map)
@@ -579,7 +671,7 @@ class EntityIdentifier:
             List: List of generated queries.
         """
         queries = []
-        for table, matches in self.table_entities.items():
+        for table, matches in self.table_map.items():
             for col, entity in matches.items():
                 if entity_type == entity:
                     # print("found match", table, col, entity)
@@ -588,12 +680,12 @@ class EntityIdentifier:
         return queries
 
 
-    def run_queries(self, queries):
+    def run_queries(self, queries: List[str]):
         """
         Runs the queries.
 
         Args:
-            queries (List)): Output of generate_query function.
+            queries (List[str])): Output of generate_query function.
         """
         for query in queries:
             query_result = self.qry_prov.exec_query(query)
@@ -602,3 +694,41 @@ class EntityIdentifier:
                 print("-" * len(query))
                 display(query_result)
 
+
+    def generate_table_queries(self, entity_type: str, search_value: str, query_template=QUERY_TEMP):
+        queries = {}
+        for entity, pair in self.entity_map.items():
+            if entity == entity_type:
+                for table, col in pair:
+                    if table not in queries:
+                        query = query_template.format(table=table, ColumnName=col)
+                        queries[table] = query.format(MySearch=search_value)
+                    else:
+                        query = queries[table] + 'or ' + col + ' == "{MySearch}"\n'
+                        queries[table] = query.format(MySearch=search_value)
+        return queries
+
+    def format_union_query(self, queries, cols):
+        qry_list = list(queries.values())
+        fin_query = """(union isfuzzy= true
+"""
+        for query in qry_list:
+            
+            t = "({query})"
+            if query != qry_list[-1]:
+                t = t + ',\n'
+            fin_query = fin_query + t.format(query=query)
+        end = """)
+| project """
+        fin_query = fin_query + end
+        for col in cols:
+            fin_query = fin_query + col
+            if col != cols[-1]:
+                fin_query = fin_query + ', '
+        
+        return fin_query
+
+    
+    def generate_union_query(self, entity_type: str, search_value: str, cols):
+        queries = self.generate_table_queries(entity_type, search_value)
+        return self.format_union_query(queries, cols)
