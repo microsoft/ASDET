@@ -1,4 +1,4 @@
-# Notebooks
+# Data Exploration Notebooks and Modules
 
 Notebooks that deal with classification and grouping are contained within the classify folder.
 
