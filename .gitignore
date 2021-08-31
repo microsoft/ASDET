@@ -129,3 +129,7 @@ dmypy.json
 .pyre/
 /notebooks/kqlmagic/**
 **/kqlmagic/t**
+
+# Additional Files
+.virtual_documents/
+kqlmagic/

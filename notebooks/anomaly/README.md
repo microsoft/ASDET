@@ -2,7 +2,7 @@
 
 ## Isolation Forest
 
-TBD
+The Isolation Forest notebook contains the process to identify anomalies in a multivariate count based format of user selected entities, features and time range of databases from Azure Sentinel. It makes use of the Isolation Forest algorithm to do so and visualizes the anomalous outputs for the "OfficeActivity" table through histograms, scatter plots and pairplots
 
 ## Time Series
 
