@@ -142,6 +142,7 @@ def save_to_json_file(
     with open(path, "w") as fp:
         json.dump(data, fp)
 
+
 def read_json_file(path: str):
     """
     Read and return JSON file contents.
@@ -201,7 +202,6 @@ class EntityIdentifier:
             An authenticated query provider that has been connected to an Azure Sentinel workspace.
         """        
 
-        # raw results
         # Dict structure is {table: {column: {regex: (non-blank-matches, all-matches)}}}
         self._regex_matches: Dict[str, Dict[str, Dict[str, Tuple(float, float)]]]
         # object attribute to interpreted results
@@ -316,7 +316,21 @@ class EntityIdentifier:
         
 
     def table_match_to_html(self, table_name, show_guids=False):
-        """Return table column matches as HTML table."""
+        """
+        Return table column regex matches as HTML table.
+
+        Parameters
+        ----------
+        table_name : str
+            Table whose regex matching results will be displayed.
+        show_guids : bool, optional
+            Show GUID regex matches, by default False
+
+        Returns
+        -------
+        HTML table
+            Displays columns and their respective regex matches along with the match percentages, corresponding entities, and their priorities.
+        """
 
         if table_name not in self._regex_matches:
             return HTML("No data")
@@ -475,6 +489,9 @@ class EntityIdentifier:
 
 
     def select_tables(self):
+        """
+        Displays the hidden widget to select tables to be analyzed.
+        """
         display(self.selected_tables)
 
 
@@ -489,7 +506,9 @@ class EntityIdentifier:
     # HTML Tables
 
     def show_entity_map_html(self):
-        """Return entity_map as HTML table."""
+        """
+        Return entity_map as HTML table.
+        """
         table_html = [
             "<table><thead><tr><th>Entity</th><th>Table</th><th>Column</th></tr></thead><tbody>"
         ]
@@ -500,7 +519,9 @@ class EntityIdentifier:
         return HTML(f"{header} {''.join(table_html)}</tbody></table>")
 
     def show_table_map_html(self):
-        """Return table_map as HTML table."""
+        """
+        Return table_map as HTML table.
+        """
         table_html = [
             "<table><thead><tr><th>Table</th><th>Column</th><th>Entity</th></tr></thead><tbody>"
         ]
@@ -541,13 +562,13 @@ class EntityIdentifier:
         Shows a network graph of the tables and columns for a single entity.
         """
         G = nx.Graph()
+
         for table, col in self.entity_map[entity]:
             G.add_edge(entity, table)
             G.add_edge(table, col)
-            G.nodes[table]['color'] = 'orange'
-            G.nodes[col]['color'] = 'red'
+            G.nodes[table]['color'] = 'red'
+            G.nodes[col]['color'] = 'orange'
 
-        G.nodes[entity]['color'] = 'yellow'
         nt = Network(notebook=False)
         nt.from_nx(G)
         nt.show('nx.html')
@@ -568,6 +589,9 @@ class EntityIdentifier:
 
     
     def show_sankey(self):
+        """
+        Shows a Sankey diagram of the flow from entity to data source.
+        """
         # get parameter lists
         entity_list = list(self.entity_map.keys())
         num_entities = len(entity_list)
@@ -696,6 +720,23 @@ class EntityIdentifier:
 
 
     def generate_table_queries(self, entity_type: str, search_value: str, query_template=QUERY_TEMP):
+        """
+        Helper function to generate the individual queries to be formatted in a union query.
+
+        Parameters
+        ----------
+        entity_type : str
+            Entity of the particular value to search for
+        search_value : str
+            Value of the instance to search for.
+        query_template : [type], optional
+            KQL query template., by default QUERY_TEMP
+
+        Returns
+        -------
+        Dict
+            Dict where the key is the table and the value is the query.
+        """
         queries = {}
         for entity, pair in self.entity_map.items():
             if entity == entity_type:
@@ -709,6 +750,9 @@ class EntityIdentifier:
         return queries
 
     def format_union_query(self, queries, cols):
+        """
+        Helper function that takes the dict from generate_table_queries and returns the union query.
+        """
         qry_list = list(queries.values())
         fin_query = """(union isfuzzy= true
 """
@@ -730,5 +774,22 @@ class EntityIdentifier:
 
     
     def generate_union_query(self, entity_type: str, search_value: str, cols):
+        """
+        Generate a union KQL query that combines the individual queries into one.
+
+        Parameters
+        ----------
+        entity_type : str
+            Entity of the particular value to search for
+        search_value : str
+            Value of the instance to search for.
+        cols : [str]
+            Columns to be displayed.
+
+        Returns
+        -------
+        str
+            Union query.
+        """
         queries = self.generate_table_queries(entity_type, search_value)
         return self.format_union_query(queries, cols)
