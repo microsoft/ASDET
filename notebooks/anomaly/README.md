@@ -1,4 +1,8 @@
-# Notebooks for Anomaly Detection
+# Anomaly Detection
+
+Anomalies can be defined as any data point that does not follow a normal behavior. It can be very effective in security analysis by helping focus analysts on key events which would otherwise be very difficult to find in large datasets.
+
+ASDET Anomaly Detection gives security analysts the option to explore data and identify anomalies through user selected entities (obtained using the data inference described earlier) and other features (data columns) whilst reducing the need to code and model. We have implemented two anomaly modeling methods – Isolation Forests and Time Series Analysis.
 
 ## Isolation Forest
 

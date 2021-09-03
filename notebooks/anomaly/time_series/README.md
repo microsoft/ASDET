@@ -1,0 +1,5 @@
+# Multivariate Time Series Analysis
+
+What are time series? Time series are a way for us to measure one or more variables with respect to time.  This is useful when dealing with security log data because all of the features (columns) in security logs have an associated time stamp.  In our case, we are modelling the distinct values within a feature per hour (e.g., number of distinct client IP addresses) using the MSTICPy Time Series decomposition functions.  By generating a set of time series models for a set of features, we can identify common trends during certain time periods for all selected features at once.  This allows analysts to more quickly analyze multiple features at once within a time series.
+
+Please note that this method is not truly multivariate timeseries analysis, but rather we independently generate the time series for each individual feature and form a composite image representing the dataset. It also allows users to discern if a timeframe is anomalous within a single feature or multiple features.
