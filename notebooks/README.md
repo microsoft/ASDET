@@ -1,5 +1,9 @@
 # Data Exploration Notebooks and Modules
 
-Notebooks that deal with classification and grouping are contained within the classify folder.
+This repository contains the 3 main portions of the data exploration toolkit:
 
-Notebooks that deal with identify entities using regular expressions are contained within the identification.
+Anomaly Detection
+
+Feature Engineering
+
+Entity Identification

@@ -1,14 +1,13 @@
-# Project
+# Azure Sentinel Data Exploration Toolset (ASDET)
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+## What’s ASDET and why should you use it? 
 
-As the maintainer of this project, please make a few updates:
+Security Analysts deal with extremely large datasets in Azure Sentinel, making it very difficult to analyze for anomalous datapoints. We sought to streamline the data analysis process by developing a toolset to reduce the data to a more manageable format, effectively allowing analysts to easily and efficiently gain a better understanding of their dataset and detect anomalies therein. Our toolset has three main components that each provide a different way of turning raw data into useful insights.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+*	[Entity Identification](https://github.com/microsoft/ASDET/tree/main/notebooks/identification)
+*	[Entity Identification](https://github.com/microsoft/ASDET/tree/main/notebooks/identification)
+*	[Feature Engineering](https://github.com/microsoft/ASDET/tree/main/notebooks/feature_engineering)
+*	[Anomaly Detection](https://github.com/microsoft/ASDET/tree/main/notebooks/anomaly)
 
 ## Contributing
 
